@@ -1,8 +1,7 @@
 /* ==========================================================================
-   Discipline Learn — Mobile Web App Stylesheet
-   Figma Spec Reference:
-   - Mobile Login: 294:390 (390 × 844 px)
-   - Mobile PWA Screen: 264:2364 (390 × 844 px) — 4 Separate Dock Tab Views
+   Discipline Learn — Production Mobile Web App Stylesheet
+   - Fluid 100% width × 100dvh responsive layout for all smartphones
+   - Exact Figma Visual Identity (Colors, Typography, Glass Logo, Liquid Waves)
    ========================================================================== */
 
 :root {
@@ -28,23 +27,7 @@
   --color-border-divider: rgba(14, 26, 28, 0.06);
 
   /* Exact Figma Gradients */
-  --grad-progress-card: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #d8eeec 18.6%,
-    #f5fafa 21.08%,
-    #b4dad9 21.7%,
-    #b5dad9 100%
-  );
   --grad-task-done: linear-gradient(90deg, #f1f8b6 0%, #dceb86 100%);
-  --grad-task-current: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #f5fafa 49%,
-    #b4dad9 50%,
-    #d8eeec 53%,
-    #b5dad9 100%
-  );
 
   /* Exact Figma Elevation */
   --shadow-water-card: 0 3px 8px rgba(36, 75, 53, 0.0627);
@@ -54,9 +37,9 @@
   --font-display: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-sans: "Figtree", -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Motion Curves (emil-design-eng & modern-web-guidance) */
+  /* Motion Curves (emil-design-eng & animate skill) */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 *,
@@ -68,22 +51,34 @@
 }
 
 html {
+  -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overscroll-behavior: none;
   font-family: var(--font-sans);
   color: var(--color-ink);
-  background-color: #e4ecec;
+  background-color: var(--color-bg-app);
+  height: 100%;
 }
 
 body {
+  width: 100%;
+  height: 100dvh;
   min-height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  overflow-x: hidden;
+  justify-content: center;
+  background-color: var(--color-bg-app);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body[data-view-mode="login"] {
+  background-color: var(--color-teal);
 }
 
 /* Mobile-native baseline resets for interactive elements */
@@ -107,206 +102,168 @@ button:active {
 }
 
 /* ==========================================================================
-   Desktop Preview Stage (Allows viewing 390×844 mobile frames at 1:1 scale)
+   Stage & Responsive Mobile App Shell
+   - Full-screen 100% × 100dvh on phones
+   - Centered 420px card on large desktop screens
    ========================================================================== */
-.preview-toolbar {
-  width: 100%;
-  max-width: 920px;
-  margin: 14px auto 10px;
-  padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--color-border-hairline);
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  z-index: 50;
-}
-
-.preview-toolbar__brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-ink);
-}
-
-.preview-toolbar__tabs {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--color-bg-app);
-  padding: 3px;
-  border-radius: 10px;
-  border: 1px solid var(--color-border-hairline);
-}
-
-.preview-tab {
-  padding: 5px 11px;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
-}
-
-.preview-tab.is-active {
-  background: var(--color-teal);
-  color: #ffffff;
-}
-
 .stage-container {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 32px;
-  padding: 6px 16px 28px;
   width: 100%;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* View Mode Visibility Rules on Desktop */
 body[data-view-mode="login"] #screen-app {
-  display: none;
+  display: none !important;
 }
 
 body[data-view-mode="app"] #screen-login {
-  display: none;
+  display: none !important;
 }
 
-body[data-view-mode="both"] #screen-login,
-body[data-view-mode="both"] #screen-app {
-  display: block;
-}
-
-/* ==========================================================================
-   Core Mobile Frame Container (Exact 390 × 844 px Figma Frame)
-   ========================================================================== */
 .mobile-frame {
   position: relative;
-  width: 390px;
-  height: 844px;
-  border-radius: 28px;
+  width: 100%;
+  height: 100dvh;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  flex-shrink: 0;
-  box-shadow: var(--shadow-device-frame);
+}
+
+@media (min-width: 500px) {
+  body {
+    background-color: #e4ecec !important;
+  }
+
+  .stage-container {
+    padding: 16px;
+  }
+
+  .mobile-frame {
+    height: min(860px, calc(100dvh - 32px));
+    border-radius: 28px;
+    box-shadow: var(--shadow-device-frame);
+    border: 1px solid var(--color-border-hairline);
+  }
 }
 
 /* ==========================================================================
-   SCREEN 1: MOBILE LOGIN (Figma Node 294:390 — 390 × 844 px)
+   SCREEN 1: MOBILE LOGIN (Responsive Flex Column)
    ========================================================================== */
 .mobile-frame--login {
   background-color: var(--color-teal);
+  justify-content: space-between;
 }
 
 .login-pattern {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 390px;
-  height: 844px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   pointer-events: none;
   user-select: none;
+  z-index: 0;
 }
 
-/* Brand Logo (SVG) (294:403) [x:43, y:217, 306×210] */
+.login-hero {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 24px 16px;
+  gap: 18px;
+}
+
 .login-hero-logo {
-  position: absolute;
-  left: 43px;
-  top: 217px;
-  width: 306px;
-  height: 210px;
+  width: min(306px, 76vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
 }
 
 .login-hero-logo img {
   display: block;
-  width: 306px;
-  height: 210px;
+  width: 100%;
+  height: auto;
 }
 
-/* Discipline Learn (294:407) [x:38, y:445, 315×22] */
 .login-brand-title {
-  position: absolute;
-  left: 38px;
-  top: 445px;
-  width: 315px;
-  height: 22px;
   font-family: var(--font-display);
-  font-size: 40px;
+  font-size: clamp(32px, 9.2vw, 40px);
   font-weight: 800;
-  line-height: 22px;
+  line-height: 1.1;
   letter-spacing: -0.02em;
   color: #f4f8f8;
+  text-align: center;
   white-space: nowrap;
 }
 
-/* auth-card (294:409) [x:0, y:572, 390×272] */
+/* Auth Card Bottom Sheet */
 .auth-card {
-  position: absolute;
-  left: 0;
-  top: 572px;
-  width: 390px;
-  height: 272px;
+  position: relative;
+  z-index: 2;
+  width: 100%;
   background-color: var(--color-surface);
-  border-radius: 16px;
-  border: 1px solid var(--color-border-hairline);
+  border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--color-border-hairline);
+  padding: 26px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 280ms var(--ease-drawer), opacity 240ms var(--ease-out);
 }
 
-/* Xush kelibsiz (294:410) [x:119, y:26, 152×28] */
+@starting-style {
+  .auth-card {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+}
+
 .auth-card__title {
-  position: absolute;
-  left: 119px;
-  top: 26px;
-  width: 152px;
-  height: 28px;
   font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
   line-height: 28px;
   letter-spacing: -0.02em;
   color: var(--color-ink);
-  white-space: nowrap;
+  text-align: center;
 }
 
-/* Subtitle (294:411 / 287:98) [x:28, y:66, 334×20] */
 .auth-card__subtitle {
-  position: absolute;
-  left: 28px;
-  top: 66px;
-  width: 334px;
-  height: 20px;
+  margin-top: 8px;
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 400;
   line-height: 20px;
   color: var(--color-text-muted);
   text-align: center;
-  white-space: nowrap;
 }
 
-/* Component // Google OAuth Button (294:412) [x:28, y:125, 334×56] */
+/* Google OAuth Button */
 .google-oauth-btn {
-  position: absolute;
-  left: 28px;
-  top: 125px;
-  width: 334px;
+  margin-top: 24px;
+  width: 100%;
   height: 56px;
+  padding: 10px 14px 10px 10px;
   border-radius: 12px;
   background-color: var(--color-ink);
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   text-align: left;
   transition: transform 150ms var(--ease-out), background-color 150ms var(--ease-out);
 }
 
-/* Google Tile (I294:412;264:4097) [x:10, y:10, 36×36, r:8] */
 .google-oauth-btn__tile {
-  position: absolute;
-  left: 10px;
-  top: 10px;
   width: 36px;
   height: 36px;
   border-radius: 8px;
@@ -314,69 +271,46 @@ body[data-view-mode="both"] #screen-app {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-/* Google hisobi orqali davom etish (I294:412;264:4103) [x:60, y:18, 221×20] */
 .google-oauth-btn__label {
-  position: absolute;
-  left: 60px;
-  top: 18px;
-  height: 20px;
   font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 500;
   line-height: 20px;
   color: #ffffff;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Divider row (294:413) [x:28, y:198, 334×16] */
+/* Divider row */
 .auth-card__divider {
-  position: absolute;
-  left: 28px;
-  top: 198px;
-  width: 334px;
-  height: 16px;
+  margin-top: 18px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .auth-card__divider-line {
-  position: absolute;
-  top: 7.5px;
-  width: 105.5px;
+  flex: 1;
   height: 1px;
   background-color: var(--color-border-hairline);
 }
 
-.auth-card__divider-line:first-child {
-  left: 0;
-}
-
-.auth-card__divider-line:last-child {
-  left: 228.5px;
-}
-
 .auth-card__divider-text {
-  position: absolute;
-  left: 115.5px;
-  top: 0;
-  width: 103px;
-  height: 16px;
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 400;
   line-height: 16px;
   color: var(--color-text-subtle);
-  text-align: center;
   white-space: nowrap;
 }
 
-/* Terms text (294:417) [x:28, y:230, 334×36] */
 .auth-card__terms {
-  position: absolute;
-  left: 28px;
-  top: 230px;
-  width: 334px;
-  height: 36px;
+  margin-top: 14px;
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 400;
@@ -392,60 +326,45 @@ body[data-view-mode="both"] #screen-app {
 }
 
 /* ==========================================================================
-   SCREEN 2: MOBILE PWA SCREEN (Figma Node 264:2364 — 390 × 844 px)
+   SCREEN 2: MOBILE PWA SCREEN (Responsive Flex Column)
    ========================================================================== */
 .mobile-frame--app {
   background-color: var(--color-bg-app);
-  border: 1px solid var(--color-border-hairline);
 }
 
-/* Top Header (310:72) [x:16, y:20, 358×36] */
+/* Top Header */
 .app-header {
-  position: absolute;
-  left: 16px;
-  top: 20px;
-  width: 358px;
-  height: 36px;
+  flex-shrink: 0;
+  width: 100%;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   z-index: 10;
 }
 
-/* brand (310:73) [x:0, y:8, 156×20] */
 .app-header__brand {
-  position: absolute;
-  left: 0;
-  top: 8px;
-  width: 156px;
-  height: 20px;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .app-header__logo {
-  position: absolute;
-  left: 0;
-  top: 0.5px;
   width: 28px;
   height: 19px;
+  display: block;
 }
 
 .app-header__title {
-  position: absolute;
-  left: 36px;
-  top: 0;
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
   line-height: 20px;
   letter-spacing: -0.01em;
   color: var(--color-ink);
-  white-space: nowrap;
 }
 
-/* profile-avatar (310:221) [x:322, y:0, 36×36] */
 .app-header__avatar {
-  position: absolute;
-  left: 322px;
-  top: 0;
   width: 36px;
   height: 36px;
   border-radius: 18px;
@@ -453,6 +372,7 @@ body[data-view-mode="both"] #screen-app {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .app-header__avatar span {
@@ -464,28 +384,47 @@ body[data-view-mode="both"] #screen-app {
 }
 
 /* ==========================================================================
-   Non-Scrollable Mobile Viewport (310:217) [x:16, y:72, 358×712]
-   Each Dock Tab opens as its own non-scrollable screen
+   Main App Viewport & Tab Panels
    ========================================================================== */
 .app-viewport {
-  position: absolute;
-  left: 16px;
-  top: 72px;
-  width: 358px;
-  height: 712px;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 4px 16px 12px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
 .tab-panel {
-  position: relative;
-  width: 358px;
-  height: 712px;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.tab-panel::-webkit-scrollbar {
   display: none;
 }
 
 .tab-panel.is-active {
-  display: block;
+  display: flex;
+  animation: tabPanelEnter 190ms var(--ease-out);
+}
+
+@keyframes tabPanelEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Section Titles */
@@ -506,53 +445,48 @@ body[data-view-mode="both"] #screen-app {
 }
 
 /* --------------------------------------------------------------------------
-   TAB 1: BUGUN — 1. section-progress (310:74) [0, 0, 358×176]
+   TAB 1: BUGUN — 1. section-progress
    -------------------------------------------------------------------------- */
 .section-progress {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 358px;
-  height: 176px;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 .progress-card {
   position: relative;
-  width: 358px;
-  height: 176px;
+  width: 100%;
+  height: 172px;
   border-radius: 16px;
   background: linear-gradient(180deg, #ffffff 0%, #d8eeec 18.6%, #f5fafa 24%, #b5dad9 40%, #b5dad9 100%);
   border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow-water-card);
   overflow: hidden;
+  padding: 10px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-/* progress-header (310:77) [x:20, y:5, 318×24] */
 .progress-header {
-  position: absolute;
-  left: 20px;
-  top: 5px;
-  width: 318px;
-  height: 24px;
+  position: relative;
   z-index: 3;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-/* status-pill (310:78) [0, 0, 123×24, r:20] */
 .status-pill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 123px;
-  height: 24px;
+  padding: 3px 10px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.76);
   border: 1px solid rgba(167, 205, 202, 0.56);
+  display: inline-flex;
+  align-items: center;
 }
 
 .status-pill__text {
-  position: absolute;
-  left: 9px;
-  top: 3px;
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
@@ -561,13 +495,7 @@ body[data-view-mode="both"] #screen-app {
   white-space: nowrap;
 }
 
-/* Shanba, 31 oktabr (310:80) [x:215, y:4, 103×16] */
 .progress-date {
-  position: absolute;
-  left: 215px;
-  top: 4px;
-  width: 103px;
-  height: 16px;
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 400;
@@ -577,13 +505,13 @@ body[data-view-mode="both"] #screen-app {
   white-space: nowrap;
 }
 
-/* Animated water-surface container covering progress-card */
+/* Fluid Animated Water Surface (200% width SVG for any screen size) */
 .water-surface {
   position: absolute;
   left: 0;
   top: 6px;
-  width: 358px;
-  height: 170px;
+  width: 100%;
+  height: calc(100% - 6px);
   pointer-events: none;
   overflow: hidden;
   z-index: 1;
@@ -593,96 +521,91 @@ body[data-view-mode="both"] #screen-app {
   position: absolute;
   left: 0;
   top: 0;
-  width: 716px;
-  height: 176px;
+  width: 200%;
+  height: 100%;
   will-change: transform;
 }
 
-/* 94% (310:81) [x:110, y:71, 138×34] */
 .progress-value {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 71px;
-  height: 34px;
+  position: relative;
+  z-index: 3;
+  margin: auto 0;
   font-family: var(--font-display);
-  font-size: 64px;
+  font-size: 62px;
   font-weight: 700;
-  line-height: 34px;
+  line-height: 1;
   letter-spacing: -0.03em;
   color: var(--color-teal);
   text-align: center;
   font-variant-numeric: tabular-nums;
-  z-index: 3;
 }
 
 /* --------------------------------------------------------------------------
-   TAB 1: BUGUN — 2. section-plan (310:85) [0, 192, 358×330]
+   TAB 1: BUGUN — 2. section-plan
    -------------------------------------------------------------------------- */
 .section-plan {
-  position: absolute;
-  left: 0;
-  top: 192px;
-  width: 358px;
-  height: 330px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
 }
 
 .section-plan__header {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 358px;
-  height: 20px;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-/* plan-card (310:87) [0, 28, 358×302] */
+.section-plan__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-add-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-teal);
+  background: var(--color-pill-bg);
+  padding: 3px 9px;
+  border-radius: 8px;
+}
+
 .plan-card {
-  position: absolute;
-  left: 0;
-  top: 28px;
-  width: 358px;
-  height: 302px;
+  width: 100%;
+  padding: 12px;
   border-radius: 16px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .task-row {
-  position: absolute;
-  left: 12px;
-  width: 334px;
-  height: 48px;
-  border-radius: 16px;
+  position: relative;
+  width: 100%;
+  min-height: 50px;
+  padding: 8px 12px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow-water-card);
   text-align: left;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   overflow: hidden;
+  transition:
+    transform 140ms var(--ease-out),
+    background 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out);
 }
 
-/* Exact task positions inside plan-card */
-.task-row[data-task-id="1"] {
-  top: 12px;
-}
-
-.task-row[data-task-id="2"] {
-  top: 68px;
-}
-
-.task-row[data-task-id="3"] {
-  top: 124px;
-}
-
-.task-row[data-task-id="4"] {
-  top: 180px;
-  height: 54px;
-}
-
-.task-row[data-task-id="5"] {
-  top: 242px;
+.task-row:active {
+  transform: scale(0.98);
 }
 
 .task-row--done {
@@ -690,19 +613,21 @@ body[data-view-mode="both"] #screen-app {
 }
 
 .task-row--current {
+  min-height: 56px;
   background: linear-gradient(180deg, #ffffff 0%, #f5fafa 52%, #b5dad9 100%);
 }
 
 .task-row--future {
   background: #ffffff;
+  border-color: var(--color-border-hairline);
 }
 
-/* Animated water surface inside task-current */
+/* Fluid Animated Water Surface inside task-row--current */
 .task-water-surface {
   position: absolute;
   inset: 0;
-  width: 334px;
-  height: 54px;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
@@ -718,27 +643,40 @@ body[data-view-mode="both"] #screen-app {
   position: absolute;
   left: 0;
   top: 0;
-  width: 668px;
-  height: 54px;
+  width: 200%;
+  height: 100%;
   will-change: transform;
 }
 
-/* Task check circles */
 .task-row__check {
-  position: absolute;
-  left: 12px;
-  top: 14px;
+  position: relative;
+  z-index: 2;
   width: 20px;
   height: 20px;
   border-radius: 10px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+  transition: transform 200ms var(--ease-out), border-color 180ms var(--ease-out);
+}
+
+.task-row--done .task-row__check {
+  animation: checkPop 220ms var(--ease-out);
+}
+
+@keyframes checkPop {
+  0% {
+    transform: scale(0.82);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .task-row--current .task-row__check {
-  top: 17px;
   border: 1.5px solid var(--color-teal-deep);
 }
 
@@ -746,100 +684,74 @@ body[data-view-mode="both"] #screen-app {
   border: 1.5px solid #a2afab;
 }
 
-/* Task text body [x:44, y:6, 278×36] */
 .task-row__body {
-  position: absolute;
-  left: 44px;
-  top: 6px;
-  width: 278px;
-  height: 36px;
-  display: block;
+  position: relative;
   z-index: 2;
-}
-
-.task-row__body--current {
-  top: 0;
-  width: 218px;
-  height: 54px;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .task-row__title {
-  display: block;
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
   line-height: 18px;
   color: var(--color-ink-forest);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.task-row__title--current {
+.task-row--current .task-row__title {
   font-weight: 600;
-  white-space: normal;
-  line-height: 17px;
-  margin-top: 2px;
 }
 
 .task-row__sub {
-  display: block;
-  margin-top: 2px;
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 400;
   line-height: 16px;
   color: var(--color-olive-text);
-  white-space: nowrap;
 }
 
-.task-row__sub--current {
-  position: absolute;
-  left: 0;
-  top: 38px;
-  margin-top: 0;
+.task-row--current .task-row__sub,
+.task-row--future .task-row__sub {
   color: var(--color-aqua-sub);
 }
 
-.task-row__sub--future {
-  color: var(--color-aqua-sub);
-}
-
-/* Hozir badge (310:111) [x:274, y:16, 48×22, r:20] */
 .task-row__badge {
-  position: absolute;
-  left: 274px;
-  top: 16px;
-  width: 48px;
-  height: 22px;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  padding: 4px 10px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(167, 205, 202, 0.45);
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
   line-height: 14px;
   color: var(--color-teal-deep);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
+}
+
+.task-row:not(.task-row--current) .task-row__badge {
+  display: none;
 }
 
 /* --------------------------------------------------------------------------
-   TAB 2: KITOB (Figma Card / Active textbook 264:2219 + Unit 14)
+   TAB 2: KITOB
    -------------------------------------------------------------------------- */
 .section-kitob {
-  position: relative;
-  width: 358px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .section-kitob__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 20px;
-  margin-bottom: 8px;
 }
 
 .kitob-upload-btn {
@@ -849,22 +761,24 @@ body[data-view-mode="both"] #screen-app {
   font-size: 13px;
   font-weight: 500;
   color: var(--color-teal);
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--color-pill-bg);
 }
 
 .textbook-card {
-  width: 358px;
+  width: 100%;
   padding: 16px;
   border-radius: 16px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-hairline);
-  margin-bottom: 20px;
 }
 
 .textbook-card__top {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .textbook-cover {
@@ -888,13 +802,13 @@ body[data-view-mode="both"] #screen-app {
 .textbook-info__title {
   font-family: var(--font-sans);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 18px;
   color: var(--color-ink);
 }
 
 .textbook-info__author {
-  margin-top: 4px;
+  margin-top: 3px;
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 400;
@@ -907,7 +821,7 @@ body[data-view-mode="both"] #screen-app {
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 16px;
   color: var(--color-text-secondary);
   margin-bottom: 8px;
@@ -915,49 +829,70 @@ body[data-view-mode="both"] #screen-app {
 
 .textbook-card__track {
   width: 100%;
-  height: 4px;
-  border-radius: 2px;
+  height: 5px;
+  border-radius: 3px;
   background-color: var(--color-pill-bg);
   overflow: hidden;
 }
 
 .textbook-card__fill {
   height: 100%;
-  border-radius: 2px;
+  border-radius: 3px;
   background-color: var(--color-teal);
+  transition: width 240ms var(--ease-out);
 }
 
 .section-kitob__subhead {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 20px;
-  margin-bottom: 8px;
+  margin-top: 4px;
+}
+
+.unit-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unit-nav-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-hairline);
+  color: var(--color-ink);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .unit-reader-card {
-  width: 358px;
+  width: 100%;
   padding: 16px;
   border-radius: 16px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .unit-reader-card__badge-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
 }
 
 .unit-reader-card__unit {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 6px;
   background-color: var(--color-pill-bg);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-teal-deep);
 }
 
@@ -972,61 +907,90 @@ body[data-view-mode="both"] #screen-app {
   font-weight: 700;
   line-height: 22px;
   color: var(--color-ink);
-  margin-bottom: 8px;
 }
 
 .unit-reader-card__desc {
   font-size: 13px;
   line-height: 20px;
   color: var(--color-text-secondary);
-  margin-bottom: 14px;
 }
 
-.quote-marker--in-kitob {
-  position: relative !important;
-  left: 0 !important;
-  top: 0 !important;
+.unit-reader-card__cta {
+  margin-top: 4px;
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  background-color: var(--color-pill-bg);
+  color: var(--color-teal-deep);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* --------------------------------------------------------------------------
-   TAB 3: REPETITOR — section-repetitor (310:118) [0, 0, 358×700]
+   TAB 3: REPETITOR (Full-height responsive flex card + Pinned Composer)
    -------------------------------------------------------------------------- */
 .section-repetitor {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 358px;
-  height: 700px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
 }
 
-.section-repetitor__title {
-  position: absolute;
-  left: 0;
-  top: 0;
+.section-repetitor__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
 }
 
-/* repetitor-card (310:120) — extends down to 12px above the Bottom Nav Dock */
+.repetitor-next-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-teal);
+  background: var(--color-pill-bg);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
 .repetitor-card {
-  position: absolute;
-  left: 0;
-  top: 28px;
-  width: 358px;
-  height: 672px;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 16px;
   border-radius: 16px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
   overflow: hidden;
 }
 
-/* repetitor-header (310:121) [16, 16, 326×20] */
+.repetitor-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: none;
+}
+
+.repetitor-body::-webkit-scrollbar {
+  display: none;
+}
+
 .repetitor-header {
-  position: absolute;
-  left: 16px;
-  top: 16px;
-  width: 326px;
-  height: 20px;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .repetitor-header__icon {
@@ -1037,111 +1001,72 @@ body[data-view-mode="both"] #screen-app {
 }
 
 .repetitor-header__label {
-  margin-left: 8px;
   font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 13px;
+  font-weight: 500;
   line-height: 20px;
   color: var(--color-text-secondary);
 }
 
-/* Student sentence (310:125) [16, 48, 326×44] */
 .repetitor-sentence {
-  position: absolute;
-  left: 16px;
-  top: 48px;
-  width: 326px;
-  height: 44px;
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 400;
-  line-height: 22px;
+  line-height: 21px;
   color: var(--color-ink);
 }
 
-/* correction-row (310:126) [16, 104, 326×20] */
 .correction-row {
-  position: absolute;
-  left: 16px;
-  top: 104px;
-  width: 326px;
-  height: 20px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .correction-row__context {
-  position: absolute;
-  left: 0;
-  top: 0;
   font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
   color: var(--color-text-secondary);
 }
 
 .correction-row__wrong {
-  position: absolute;
-  left: 75px;
-  top: 0;
   font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
   color: var(--color-danger);
   text-decoration: line-through;
 }
 
 .correction-row__arrow {
-  position: absolute;
-  left: 119px;
-  top: 2px;
-  width: 16px;
-  height: 16px;
-  display: flex;
+  display: inline-flex;
 }
 
 .correction-row__right {
-  position: absolute;
-  left: 143px;
-  top: 0;
   font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
+  font-weight: 600;
   color: var(--color-success);
 }
 
-/* Uzbek explanation (310:133) [16, 136, 326×60] */
 .repetitor-explanation {
-  position: absolute;
-  left: 16px;
-  top: 136px;
-  width: 326px;
-  height: 60px;
   font-family: var(--font-sans);
   font-size: 13px;
-  font-weight: 400;
-  line-height: 20px;
+  line-height: 19px;
   color: var(--color-text-secondary);
 }
 
-/* quote-marker (310:134) [16, 208, 326×124, r:10] */
+/* Quote Marker Box (Used in Kitob & Repetitor) */
 .quote-marker {
-  position: absolute;
-  left: 16px;
-  top: 208px;
-  width: 326px;
-  height: 124px;
+  width: 100%;
+  padding: 12px;
   border-radius: 10px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .quote-marker__head {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  width: 302px;
-  height: 16px;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .quote-marker__icon {
@@ -1149,103 +1074,85 @@ body[data-view-mode="both"] #screen-app {
 }
 
 .quote-marker__source {
-  margin-left: 8px;
   font-family: var(--font-sans);
   font-size: 12px;
-  font-weight: 400;
   line-height: 16px;
   color: var(--color-text-muted);
 }
 
 .quote-marker__lines {
-  position: absolute;
-  left: 12px;
-  top: 34px;
-  width: 302px;
-  height: 78px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .quote-marker__line-group {
   position: relative;
-  width: 302px;
-  height: 36px;
-}
-
-.quote-marker__line-group + .quote-marker__line-group {
-  margin-top: 6px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .quote-marker__highlight {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 302px;
-  height: 12px;
-  border-radius: 2px;
+  inset: 0;
   background-color: var(--color-lemon-marker);
+  border-radius: 4px;
+  transform-origin: left center;
+  z-index: 0;
 }
 
 .quote-marker__text {
-  position: absolute;
-  left: 0;
-  top: 16px;
-  width: 302px;
-  height: 20px;
+  position: relative;
+  z-index: 1;
   font-family: var(--font-sans);
   font-size: 13px;
-  font-weight: 400;
+  font-weight: 500;
+  line-height: 19px;
+  color: var(--color-ink);
+}
+
+/* Practice Prompt Box */
+.practice-box {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: var(--color-bg-app);
+  border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.practice-box__label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--color-text-muted);
+  transition: color 180ms var(--ease-out);
+}
+
+.practice-box__prompt {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
   line-height: 20px;
   color: var(--color-ink);
 }
 
-/* practice (310:150) [16, 344, 326×92, r:10] */
-.practice-box {
-  position: absolute;
-  left: 16px;
-  top: 344px;
-  width: 326px;
-  height: 92px;
-  border-radius: 10px;
-  background-color: var(--color-bg-app);
-  border: 1px solid var(--color-border-hairline);
-}
-
-.practice-box__label {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 16px;
-  color: var(--color-text-muted);
-}
-
-.practice-box__prompt {
-  position: absolute;
-  left: 12px;
-  top: 36px;
-  width: 302px;
-  height: 44px;
-  font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 22px;
-  color: var(--color-ink);
-}
-
-/* composer (310:153) — pinned stationary right above the Bottom Nav Dock */
+/* Pinned Stationary Composer Box at Bottom of Repetitor Card */
 .composer-box {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  width: 326px;
-  height: 88px;
-  border-radius: 10px;
+  flex-shrink: 0;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
   background-color: var(--color-bg-app);
   border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   transition: border-color 150ms var(--ease-out), background-color 150ms var(--ease-out);
-  z-index: 5;
 }
 
 .composer-box:focus-within {
@@ -1254,18 +1161,14 @@ body[data-view-mode="both"] #screen-app {
 }
 
 .composer-box__input {
-  position: absolute;
-  left: 12px;
-  top: 10px;
-  width: 302px;
-  height: 22px;
+  width: 100%;
   border: none;
   outline: none;
   background: transparent;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 16px; /* Prevents iOS/Android input zoom */
   font-weight: 400;
-  line-height: 18px;
+  line-height: 20px;
   color: var(--color-ink);
 }
 
@@ -1273,38 +1176,19 @@ body[data-view-mode="both"] #screen-app {
   color: var(--color-text-muted);
 }
 
-/* Prevent iOS auto-zoom on coarse touch pointers while keeping layout intact */
-@media (pointer: coarse) {
-  .composer-box__input {
-    font-size: 16px;
-    width: 371px;
-    transform: scale(0.8125);
-    transform-origin: left top;
-  }
-}
-
-/* Composer action row (310:155) [12, 40, 302×36] */
 .composer-box__actions {
-  position: absolute;
-  left: 12px;
-  top: 40px;
-  width: 302px;
-  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .composer-box__spacer {
-  position: absolute;
-  left: 0;
-  top: 17.5px;
-  width: 166px;
-  height: 1px;
+  flex: 1;
 }
 
-/* Mic button (310:157) [174, 0, 36×36, r:8] */
 .composer-box__mic {
-  position: absolute;
-  left: 174px;
-  top: 0;
+  position: relative;
   width: 36px;
   height: 36px;
   border-radius: 8px;
@@ -1318,462 +1202,6 @@ body[data-view-mode="both"] #screen-app {
 .composer-box__mic.is-recording {
   border-color: var(--color-danger);
   background-color: #fef2f2;
-}
-
-/* Yuborish button (310:162) [218, 0, 84×36, r:8] */
-.composer-box__submit {
-  position: absolute;
-  left: 218px;
-  top: 0;
-  width: 84px;
-  height: 36px;
-  border-radius: 8px;
-  background-color: var(--color-teal);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 18px;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* --------------------------------------------------------------------------
-   TAB 4: TAKRORLASH — section-review (310:164) [0, 0, 358×197]
-   -------------------------------------------------------------------------- */
-.section-review {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 358px;
-  height: 197px;
-}
-
-.section-review__header {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 358px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.section-review__start {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 18px;
-  color: var(--color-teal);
-}
-
-/* review-card (310:172) [0, 28, 358×169, r:16] */
-.review-card {
-  position: absolute;
-  left: 0;
-  top: 28px;
-  width: 358px;
-  height: 169px;
-  border-radius: 16px;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border-hairline);
-}
-
-.review-item {
-  position: relative;
-  width: 358px;
-  height: 84px;
-  cursor: pointer;
-}
-
-.review-divider {
-  width: 358px;
-  height: 1px;
-  background-color: var(--color-border-divider);
-}
-
-/* 3-kun / 7-kun pill (310:174) [12, 32, 48×20, r:6] */
-.review-item__badge {
-  position: absolute;
-  left: 12px;
-  top: 32px;
-  width: 48px;
-  height: 20px;
-  border-radius: 6px;
-  background-color: var(--color-pill-bg);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 16px;
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Content block (310:176) [72, 12, 142×60] */
-.review-item__content {
-  position: absolute;
-  left: 72px;
-  top: 12px;
-  width: 150px;
-  height: 60px;
-}
-
-.review-item__wrong {
-  display: block;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 18px;
-  color: var(--color-danger);
-  text-decoration: line-through;
-}
-
-.review-item__right {
-  display: block;
-  margin-top: 2px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  color: var(--color-ink);
-}
-
-/* Meta (310:179) [226, 33, 120×18] */
-.review-item__meta {
-  position: absolute;
-  left: 226px;
-  top: 33px;
-  width: 120px;
-  height: 18px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 18px;
-  color: var(--color-text-muted);
-  text-align: right;
-}
-
-/* ==========================================================================
-   Bottom Nav Dock (310:188) [0, 784, 390×60]
-   ========================================================================== */
-.bottom-nav {
-  position: absolute;
-  left: 0;
-  top: 784px;
-  width: 390px;
-  height: 60px;
-  background-color: var(--color-surface);
-  border-top: 1px solid var(--color-border-hairline);
-  z-index: 20;
-  overflow: hidden;
-}
-
-.bottom-nav__pattern {
-  position: absolute;
-  left: 0;
-  top: 2px;
-  width: 390px;
-  height: 58px;
-  pointer-events: none;
-  user-select: none;
-}
-
-.bottom-nav__tab {
-  position: absolute;
-  top: 16px;
-  height: 36px;
-  color: var(--color-text-muted);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  z-index: 2;
-}
-
-/* Exact horizontal tab placements from Figma 310:188 */
-.bottom-nav__tab[data-tab="bugun"] {
-  left: 9px;
-  width: 75px;
-}
-
-.bottom-nav__tab[data-tab="kitob"] {
-  left: 84px;
-  width: 76px;
-}
-
-.bottom-nav__tab[data-tab="repetitor"] {
-  left: 195px;
-  width: 75px;
-}
-
-.bottom-nav__tab[data-tab="takrorlash"] {
-  left: 305px;
-  width: 76px;
-}
-
-.bottom-nav__icon {
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bottom-nav__label {
-  margin-top: 4px;
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 14px;
-  text-align: center;
-}
-
-.bottom-nav__tab.is-active {
-  color: var(--color-teal);
-}
-
-.bottom-nav__tab.is-active .bottom-nav__label {
-  font-weight: 600;
-}
-
-/* Active indicator bar on the top edge of the dock for the selected tab */
-.bottom-nav__tab.is-active::before {
-  content: "";
-  position: absolute;
-  top: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 28px;
-  height: 2.5px;
-  border-radius: 0 0 3px 3px;
-  background-color: var(--color-teal);
-}
-
-/* ==========================================================================
-   Hover States Guarded for Fine Pointers Only (mobile-native rule #1)
-   ========================================================================== */
-@media (hover: hover) and (pointer: fine) {
-  .google-oauth-btn:hover {
-    background-color: #182a2d;
-  }
-
-  .composer-box__submit:hover {
-    background-color: var(--color-teal-deep);
-  }
-
-  .preview-tab:not(.is-active):hover {
-    background-color: rgba(14, 124, 134, 0.08);
-    color: var(--color-ink);
-  }
-}
-
-/* ==========================================================================
-   Real Mobile Viewport Adaptation (<= 480px)
-   Full-bleed 100dvw × 100dvh with safe-area-inset support
-   ========================================================================== */
-@media (max-width: 480px) {
-  html,
-  body {
-    background-color: var(--color-bg-app);
-  }
-
-  .preview-toolbar {
-    display: none;
-  }
-
-  .stage-container {
-    padding: 0;
-    gap: 0;
-  }
-
-  .mobile-frame {
-    width: 100dvw;
-    height: 100dvh;
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-  }
-
-  .mobile-frame--login,
-  .mobile-frame--app {
-    width: 390px;
-    height: 844px;
-    transform-origin: top center;
-  }
-}
-
-/* ==========================================================================
-   Motion System (Emil Kowalski / animate skill)
-   - Curves: --ease-out: cubic-bezier(0.23, 1, 0.32, 1)
-             --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1)
-   - Properties: transform & opacity only
-   ========================================================================== */
-:root {
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-/* 1. Umumiy progress (94%) & Hozir active task — Continuous dual-layer liquid waves */
-@keyframes progressWaveFront {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(-179px, 2.5px, 0);
-  }
-  100% {
-    transform: translate3d(-358px, 0, 0);
-  }
-}
-
-@keyframes progressWaveBack {
-  0% {
-    transform: translate3d(-358px, 1.5px, 0);
-  }
-  50% {
-    transform: translate3d(-179px, -2px, 0);
-  }
-  100% {
-    transform: translate3d(0, 1.5px, 0);
-  }
-}
-
-@keyframes taskWaveFront {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(-167px, 2px, 0);
-  }
-  100% {
-    transform: translate3d(-334px, 0, 0);
-  }
-}
-
-@keyframes taskWaveBack {
-  0% {
-    transform: translate3d(-334px, 1px, 0);
-  }
-  50% {
-    transform: translate3d(-167px, -1.5px, 0);
-  }
-  100% {
-    transform: translate3d(0, 1px, 0);
-  }
-}
-
-.water-wave-svg--front {
-  will-change: transform;
-  animation: progressWaveFront 4.8s linear infinite;
-}
-
-.water-wave-svg--back {
-  will-change: transform;
-  animation: progressWaveBack 6.4s linear infinite;
-}
-
-.task-wave-svg--front {
-  will-change: transform;
-  animation: taskWaveFront 4.2s linear infinite;
-}
-
-.task-wave-svg--back {
-  will-change: transform;
-  animation: taskWaveBack 5.8s linear infinite;
-}
-
-/* 2. Reja task row tactile press & checkmark draw */
-.task-row {
-  transition:
-    transform 140ms var(--ease-out),
-    background 220ms var(--ease-out),
-    box-shadow 220ms var(--ease-out);
-}
-
-.task-row:active {
-  transform: scale(0.975);
-}
-
-.task-row__check {
-  transition: transform 200ms var(--ease-out), border-color 180ms var(--ease-out);
-}
-
-.task-row--done .task-row__check {
-  transform: scale(1);
-  animation: checkPop 220ms var(--ease-out);
-}
-
-@keyframes checkPop {
-  0% {
-    transform: scale(0.82);
-    opacity: 0.6;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* 3. Login auth-card bottom sheet entrance & Tab panel switch */
-.auth-card {
-  transition: transform 280ms var(--ease-drawer), opacity 240ms var(--ease-out);
-}
-
-@starting-style {
-  .auth-card {
-    transform: translateY(18px);
-    opacity: 0;
-  }
-}
-
-.tab-panel.is-active {
-  animation: tabPanelEnter 190ms var(--ease-out);
-}
-
-@keyframes tabPanelEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 4. Repetitor & Kitob Yellow Marker (#FFD43B) left-to-right sweep */
-.quote-marker__highlight {
-  transform-origin: left center;
-}
-
-.tab-panel.is-active .quote-marker__line-group:nth-child(1) .quote-marker__highlight {
-  animation: markerSweep 280ms var(--ease-out) 40ms both;
-}
-
-.tab-panel.is-active .quote-marker__line-group:nth-child(2) .quote-marker__highlight {
-  animation: markerSweep 280ms var(--ease-out) 110ms both;
-}
-
-@keyframes markerSweep {
-  0% {
-    transform: scaleX(0.08);
-    opacity: 0;
-  }
-  100% {
-    transform: scaleX(1);
-    opacity: 1;
-  }
-}
-
-/* 5. Microphone recording ring & Practice box feedback transition */
-.composer-box__mic {
-  transition: transform 140ms var(--ease-out), border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
 }
 
 .composer-box__mic.is-recording::after {
@@ -1797,18 +1225,270 @@ body[data-view-mode="both"] #screen-app {
   }
 }
 
-.practice-box__label,
-.practice-box__prompt {
-  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), color 180ms var(--ease-out);
+.composer-box__submit {
+  padding: 0 16px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: var(--color-teal);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 6. Bottom Nav Dock active icon lift & top indicator pill */
+/* --------------------------------------------------------------------------
+   TAB 4: TAKRORLASH (Review List + Interactive Flashcard Session)
+   -------------------------------------------------------------------------- */
+.section-review {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section-review__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-review__start {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-teal);
+  background: var(--color-pill-bg);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.review-card {
+  width: 100%;
+  border-radius: 16px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-hairline);
+  overflow: hidden;
+}
+
+.review-item {
+  width: 100%;
+  padding: 14px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.review-divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-border-divider);
+}
+
+.review-item__badge {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: var(--color-pill-bg);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.review-item__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.review-item__wrong {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-danger);
+  text-decoration: line-through;
+}
+
+.review-item__right {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.review-item__meta {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* Interactive Flashcard Session Card */
+.flashcard-session {
+  width: 100%;
+  padding: 18px;
+  border-radius: 16px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.flashcard-session__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flashcard-session__prompt {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.flashcard-session__wrong {
+  padding: 14px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: var(--color-danger);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: line-through;
+  text-align: center;
+}
+
+.flashcard-session__answer {
+  padding: 14px;
+  border-radius: 12px;
+  background: #f0fdf4;
+  border: 1px solid rgba(22, 163, 74, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.flashcard-session__right {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-success);
+}
+
+.flashcard-session__rule {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--color-text-secondary);
+}
+
+.flashcard-session__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flashcard-session__grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.fc-btn {
+  height: 44px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc-btn--reveal {
+  background: var(--color-teal);
+  color: #ffffff;
+}
+
+.fc-btn--hard {
+  background: var(--color-pill-bg);
+  color: var(--color-text-secondary);
+}
+
+.fc-btn--good {
+  background: var(--color-teal);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Bottom Nav Dock (Responsive 4-Column Grid + Safe Area Inset)
+   ========================================================================== */
+.bottom-nav {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border-hairline);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.bottom-nav__pattern {
+  position: absolute;
+  inset: 2px 0 0 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
 .bottom-nav__tab {
+  position: relative;
+  z-index: 2;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 0;
   transition: color 160ms var(--ease-out), transform 120ms var(--ease-out);
 }
 
 .bottom-nav__icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 180ms var(--ease-out);
+}
+
+.bottom-nav__label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+  text-align: center;
+}
+
+.bottom-nav__tab.is-active {
+  color: var(--color-teal);
+}
+
+.bottom-nav__tab.is-active .bottom-nav__label {
+  font-weight: 600;
 }
 
 .bottom-nav__tab.is-active .bottom-nav__icon {
@@ -1818,7 +1498,7 @@ body[data-view-mode="both"] #screen-app {
 .bottom-nav__tab::before {
   content: "";
   position: absolute;
-  top: -16px;
+  top: -10px;
   left: 50%;
   width: 28px;
   height: 2.5px;
@@ -1835,9 +1515,303 @@ body[data-view-mode="both"] #screen-app {
 }
 
 /* ==========================================================================
-   Reduced Motion Preference (animate & modern-web-guidance)
-   Keeps comprehension opacity fades, removes spatial transforms
+   Modal Bottom Sheets (Google Sign-In, User Profile, Add Task)
    ========================================================================== */
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 26, 28, 0.48);
+  backdrop-filter: blur(4px);
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sheet-backdrop[hidden],
+.flashcard-session[hidden],
+.review-card[hidden],
+.tab-panel[hidden] {
+  display: none !important;
+}
+
+.sheet-modal {
+  width: 100%;
+  background: var(--color-surface);
+  border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: sheetSlideUp 240ms var(--ease-drawer);
+}
+
+@keyframes sheetSlideUp {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.sheet-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sheet-modal__google-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.sheet-modal__close {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--color-bg-app);
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sheet-modal__desc {
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--color-text-secondary);
+}
+
+.sheet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sheet-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sheet-field__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.sheet-field__input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-hairline);
+  background: var(--color-bg-app);
+  font-family: var(--font-sans);
+  font-size: 16px; /* Prevents iOS zoom */
+  color: var(--color-ink);
+  outline: none;
+}
+
+.sheet-field__input:focus {
+  border-color: var(--color-teal);
+  background: #ffffff;
+}
+
+.sheet-submit-btn {
+  margin-top: 4px;
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--color-teal);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Profile Summary inside Sheet */
+.profile-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-summary__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background: var(--color-teal);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-summary__name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.profile-summary__email {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.profile-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.profile-stat-box {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--color-bg-app);
+  border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-stat-box__val {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-teal);
+}
+
+.profile-stat-box__lbl {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.profile-logout-btn {
+  width: 100%;
+  height: 46px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: var(--color-danger);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Motion System — Continuous Liquid Wave Animations (-50% width-independent)
+   ========================================================================== */
+@keyframes progressWaveFront {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-25%, 2.5px, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes progressWaveBack {
+  0% {
+    transform: translate3d(-50%, 1.5px, 0);
+  }
+  50% {
+    transform: translate3d(-25%, -2px, 0);
+  }
+  100% {
+    transform: translate3d(0, 1.5px, 0);
+  }
+}
+
+@keyframes taskWaveFront {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-25%, 2px, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes taskWaveBack {
+  0% {
+    transform: translate3d(-50%, 1px, 0);
+  }
+  50% {
+    transform: translate3d(-25%, -1.5px, 0);
+  }
+  100% {
+    transform: translate3d(0, 1px, 0);
+  }
+}
+
+.water-wave-svg--front {
+  animation: progressWaveFront 4.8s linear infinite;
+}
+
+.water-wave-svg--back {
+  animation: progressWaveBack 6.4s linear infinite;
+}
+
+.task-wave-svg--front {
+  animation: taskWaveFront 4.2s linear infinite;
+}
+
+.task-wave-svg--back {
+  animation: taskWaveBack 5.8s linear infinite;
+}
+
+/* Yellow Marker Sweep Animation */
+.tab-panel.is-active .quote-marker__line-group:nth-child(1) .quote-marker__highlight {
+  animation: markerSweep 280ms var(--ease-out) 40ms both;
+}
+
+.tab-panel.is-active .quote-marker__line-group:nth-child(2) .quote-marker__highlight {
+  animation: markerSweep 280ms var(--ease-out) 110ms both;
+}
+
+@keyframes markerSweep {
+  0% {
+    transform: scaleX(0.08);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Hover States Guarded for Fine Pointers Only */
+@media (hover: hover) and (pointer: fine) {
+  .google-oauth-btn:hover {
+    background-color: #182a2d;
+  }
+
+  .composer-box__submit:hover,
+  .sheet-submit-btn:hover {
+    background-color: var(--color-teal-deep);
+  }
+}
+
+/* Reduced Motion Preference */
 @media (prefers-reduced-motion: reduce) {
   .water-wave-svg,
   .task-wave-svg,
@@ -1852,4 +1826,3 @@ body[data-view-mode="both"] #screen-app {
     transform: none !important;
   }
 }
-

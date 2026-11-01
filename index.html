@@ -2,44 +2,25 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#0e7c86" id="meta-theme-color" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>Discipline Learn — Mobile</title>
+  <title>Discipline Learn</title>
   <link rel="manifest" href="/public/manifest.json" />
   <link rel="icon" type="image/svg+xml" href="/public/assets/header-logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/src/styles/main.css?v=6" />
+  <link rel="stylesheet" href="/src/styles/main.css?v=7" />
 </head>
-<body data-view-mode="app">
-  <!-- Desktop Preview Toolbar (hidden on real mobile devices <= 480px) -->
-  <header class="preview-toolbar" aria-label="Ekran ko‘rinishini tanlash">
-    <div class="preview-toolbar__brand">
-      <img src="/public/assets/header-logo.svg" width="22" height="15" alt="" />
-      <span>Discipline Learn · Mobile Preview (390×844)</span>
-    </div>
-    <div class="preview-toolbar__tabs" role="tablist">
-      <button type="button" class="preview-tab" data-mode="login" role="tab" aria-selected="false">
-        1. Mobile Login
-      </button>
-      <button type="button" class="preview-tab is-active" data-mode="app" role="tab" aria-selected="true">
-        2. Asosiy ekran (PWA)
-      </button>
-      <button type="button" class="preview-tab" data-mode="both" role="tab" aria-selected="false">
-        Yonma-yon (Figma)
-      </button>
-    </div>
-  </header>
-
+<body data-view-mode="login">
   <main class="stage-container" id="stage-container">
     <!-- ============================================================
-         SCREEN 1: MOBILE LOGIN (Figma Node 294:390 — 390 × 844 px)
+         SCREEN 1: MOBILE LOGIN (Default entry screen when unauthenticated)
          ============================================================ -->
     <section class="mobile-frame mobile-frame--login" id="screen-login" aria-label="Tizimga kirish ekrani">
-      <!-- Pattern // Samarkand star & cross (SVG) (294:391) -->
+      <!-- Pattern // Samarkand star & cross (SVG) -->
       <img
         class="login-pattern"
         src="/public/assets/login-pattern.svg"
@@ -49,30 +30,30 @@
         aria-hidden="true"
       />
 
-      <!-- Brand Logo (SVG) (294:403) [x:43, y:217, 306×210] -->
-      <div class="login-hero-logo">
-        <img
-          src="/public/assets/login-logo.svg?v=3"
-          width="306"
-          height="210"
-          alt="Discipline Learn Kufic Stairs & Book Logo"
-        />
+      <!-- Top Hero Area (Flex-centered for any phone screen height) -->
+      <div class="login-hero">
+        <div class="login-hero-logo">
+          <img
+            src="/public/assets/login-logo.svg?v=3"
+            width="306"
+            height="210"
+            alt="Discipline Learn Kufic Stairs & Book Logo"
+          />
+        </div>
+        <h1 class="login-brand-title">Discipline Learn</h1>
       </div>
 
-      <!-- Discipline Learn (294:407) [x:38, y:445, 315×22] -->
-      <h1 class="login-brand-title">Discipline Learn</h1>
-
-      <!-- auth-card (294:409) [x:0, y:572, 390×272] -->
+      <!-- Bottom Sheet Auth Card -->
       <div class="auth-card">
         <h2 class="auth-card__title">Xush kelibsiz</h2>
         <p class="auth-card__subtitle">Google hisobingiz orqali tizimga kiring</p>
 
-        <!-- Component // Google OAuth Button (294:412) [x:28, y:125, 334×56] -->
+        <!-- Google OAuth Button -->
         <button type="button" class="google-oauth-btn" id="btn-google-login">
           <span class="google-oauth-btn__tile" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M16.92 9.1875C16.92 8.6025 16.8675 8.04 16.77 7.5H9V10.695H13.44C13.245 11.7225 12.66 12.5925 11.7825 13.1775V15.255H14.46C16.02 13.815 16.92 11.7 16.92 9.1875Z" fill="#4285F4"/>
-              <path d="M9.00001 17.25C11.2275 17.25 13.095 16.515 14.46 15.255L11.7825 13.1775C11.0475 13.6725 10.11 13.9725 9.00001 13.9725C6.85501 13.9725 5.03251 12.525 4.38001 10.575H1.63501V12.705C2.99251 15.3975 5.77501 17.25 9.00001 17.25Z" fill="#34A853"/>
+              <path d="M9.00001 17.25C11.2275 17.25 13.095 16.515 14.46 15.255L11.7825 13.1775C10.11 13.9725 9.00001 13.9725C6.85501 13.9725 5.03251 12.525 4.38001 10.575H1.63501V12.705C2.99251 15.3975 5.77501 17.25 9.00001 17.25Z" fill="#34A853"/>
               <path d="M4.38 10.5675C4.215 10.0725 4.1175 9.54749 4.1175 8.99999C4.1175 8.45249 4.215 7.92749 4.38 7.43249V5.30249H1.635C1.0725 6.41249 0.75 7.66499 0.75 8.99999C0.75 10.335 1.0725 11.5875 1.635 12.6975L3.7725 11.0325L4.38 10.5675Z" fill="#FBBC05"/>
               <path d="M9.00001 4.035C10.215 4.035 11.295 4.455 12.1575 5.265L14.52 2.9025C13.0875 1.5675 11.2275 0.75 9.00001 0.75C5.77501 0.75 2.99251 2.6025 1.63501 5.3025L4.38001 7.4325C5.03251 5.4825 6.85501 4.035 9.00001 4.035Z" fill="#EA4335"/>
             </svg>
@@ -80,23 +61,70 @@
           <span class="google-oauth-btn__label">Google hisobi orqali davom etish</span>
         </button>
 
-        <!-- Divider row (294:413) [x:28, y:198, 334×16] -->
+        <!-- Divider row -->
         <div class="auth-card__divider" aria-hidden="true">
           <span class="auth-card__divider-line"></span>
           <span class="auth-card__divider-text">faqat Google orqali</span>
           <span class="auth-card__divider-line"></span>
         </div>
 
-        <!-- Terms text (294:417) [x:28, y:230, 334×36] -->
+        <!-- Terms text -->
         <p class="auth-card__terms">
-          Tizimga kirish orqali siz <a href="#terms" class="auth-card__link">Foydalanish shartlari</a> va <a href="#privacy" class="auth-card__link">Maxfiylik siyosatini</a> qabul qilasiz.
+          Tizimga kirish orqali siz <a href="#terms" class="auth-card__link" id="link-terms">Foydalanish shartlari</a> va <a href="#privacy" class="auth-card__link" id="link-privacy">Maxfiylik siyosatini</a> qabul qilasiz.
         </p>
+      </div>
+
+      <!-- Google Account Sign-In Modal Sheet -->
+      <div class="sheet-backdrop" id="google-auth-sheet" hidden>
+        <div class="sheet-modal" role="dialog" aria-modal="true" aria-labelledby="google-sheet-title">
+          <div class="sheet-modal__head">
+            <div class="sheet-modal__google-badge">
+              <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+                <path d="M16.92 9.1875C16.92 8.6025 16.8675 8.04 16.77 7.5H9V10.695H13.44C13.245 11.7225 12.66 12.5925 11.7825 13.1775V15.255H14.46C16.02 13.815 16.92 11.7 16.92 9.1875Z" fill="#4285F4"/>
+                <path d="M9.00001 17.25C11.2275 17.25 13.095 16.515 14.46 15.255L11.7825 13.1775C11.0475 13.6725 10.11 13.9725 9.00001 13.9725C6.85501 13.9725 5.03251 12.525 4.38001 10.575H1.63501V12.705C2.99251 15.3975 5.77501 17.25 9.00001 17.25Z" fill="#34A853"/>
+                <path d="M4.38 10.5675C4.215 10.0725 4.1175 9.54749 4.1175 8.99999C4.1175 8.45249 4.215 7.92749 4.38 7.43249V5.30249H1.635C1.0725 6.41249 0.75 7.66499 0.75 8.99999C0.75 10.335 1.0725 11.5875 1.635 12.6975L3.7725 11.0325L4.38 10.5675Z" fill="#FBBC05"/>
+                <path d="M9.00001 4.035C10.215 4.035 11.295 4.455 12.1575 5.265L14.52 2.9025C13.0875 1.5675 11.2275 0.75 9.00001 0.75C5.77501 0.75 2.99251 2.6025 1.63501 5.3025L4.38001 7.4325C5.03251 5.4825 6.85501 4.035 9.00001 4.035Z" fill="#EA4335"/>
+              </svg>
+              <span id="google-sheet-title">Google orqali kirish</span>
+            </div>
+            <button type="button" class="sheet-modal__close" id="btn-close-auth-sheet" aria-label="Yopish">✕</button>
+          </div>
+          <p class="sheet-modal__desc">Discipline Learn ilovasiga kirish uchun Google hisobingizni kiriting:</p>
+          <form class="sheet-form" id="google-auth-form">
+            <label class="sheet-field">
+              <span class="sheet-field__label">Ism va familiyangiz</span>
+              <input
+                type="text"
+                id="auth-name-input"
+                class="sheet-field__input"
+                placeholder="Masalan: Otabek Shaxriyorov"
+                required
+                autocomplete="name"
+                enterkeyhint="next"
+              />
+            </label>
+            <label class="sheet-field">
+              <span class="sheet-field__label">Gmail manzilingiz</span>
+              <input
+                type="email"
+                id="auth-email-input"
+                class="sheet-field__input"
+                placeholder="misol@gmail.com"
+                required
+                autocomplete="email"
+                inputmode="email"
+                autocapitalize="none"
+                enterkeyhint="done"
+              />
+            </label>
+            <button type="submit" class="sheet-submit-btn">Tasdiqlash va kirish</button>
+          </form>
+        </div>
       </div>
     </section>
 
     <!-- ============================================================
-         SCREEN 2: MOBILE PWA SCREEN (Figma Node 264:2364 — 390 × 844 px)
-         Non-scrollable multi-view workspace controlled by Bottom Nav Dock
+         SCREEN 2: MOBILE PWA SCREEN (Responsive 100dvw × 100dvh App Shell)
          ============================================================ -->
     <section
       class="mobile-frame mobile-frame--app"
@@ -104,7 +132,7 @@
       data-active-tab="bugun"
       aria-label="Discipline Learn asosiy ish maydoni"
     >
-      <!-- Top Header (310:72) [x:16, y:20, 358×36] -->
+      <!-- Top Header -->
       <header class="app-header">
         <div class="app-header__brand">
           <img
@@ -120,38 +148,35 @@
           type="button"
           class="app-header__avatar"
           id="btn-avatar"
-          title="Profil / Login ekraniga o‘tish"
-          aria-label="Shaxriyorov profili"
+          title="Foydalanuvchi profili"
+          aria-label="Foydalanuvchi profili"
         >
-          <span>Sh</span>
+          <span id="avatar-initials">U</span>
         </button>
       </header>
 
-      <!-- Non-scrollable Mobile Viewport (310:217) [x:16, y:72, 358×712]
-           Each dock tab opens as a separate view (alohida oyna) -->
+      <!-- Responsive Mobile Viewport (Each dock tab opens its own full view) -->
       <div class="app-viewport" id="app-viewport">
         <!-- ==========================================================
-             TAB 1: BUGUN (Umumiy progress 94% + Kunlik Reja)
+             TAB 1: BUGUN (Umumiy progress + Kunlik Reja)
              ========================================================== -->
         <div class="tab-panel is-active" data-tab-panel="bugun" role="tabpanel">
-          <!-- 1. section-progress (310:74) [0, 0, 358×176]
-               Umumiy progress = Foydalanuvchining barcha vaqtdagi kirish/intizom faolligi -->
+          <!-- 1. section-progress -->
           <section class="section-progress" aria-label="Umumiy progress">
             <div class="progress-card" id="progress-card">
-              <!-- progress-header (310:77) [x:20, y:5, 318×24] -->
               <div class="progress-header">
                 <div class="status-pill">
                   <span class="status-pill__text">Umumiy progress</span>
                 </div>
-                <time class="progress-date" datetime="2026-10-31">Shanba, 31 oktabr</time>
+                <time class="progress-date" id="progress-date" datetime="2026-11-01">Bugun</time>
               </div>
 
-              <!-- Animated Liquid Water Body & Dual Wave Surface (310:82) -->
+              <!-- Animated Liquid Water Body & Dual Wave Surface -->
               <div class="water-surface" aria-hidden="true">
-                <svg class="water-wave-svg water-wave-svg--back" width="716" height="176" viewBox="0 0 716 176" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="water-wave-svg water-wave-svg--back" viewBox="0 0 716 176" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M0 36 C 90 22, 179 48, 268 35 C 320 27, 340 32, 358 36 C 448 22, 537 48, 626 35 C 678 27, 698 32, 716 36 L 716 176 L 0 176 Z" fill="#D8EEEC" fill-opacity="0.85"/>
                 </svg>
-                <svg class="water-wave-svg water-wave-svg--front" width="716" height="176" viewBox="0 0 716 176" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="water-wave-svg water-wave-svg--front" viewBox="0 0 716 176" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M0 38 C 84 21, 130 51, 210 37 C 290 24, 322 30, 358 38 C 442 21, 488 51, 568 37 C 648 24, 680 30, 716 38 L 716 176 L 0 176 Z" fill="url(#grad_water_fill)"/>
                   <ellipse class="water-glint" cx="289" cy="29" rx="73" ry="4" fill="white" fill-opacity="0.7"/>
                   <ellipse class="water-glint" cx="647" cy="29" rx="73" ry="4" fill="white" fill-opacity="0.7"/>
@@ -165,21 +190,24 @@
                 </svg>
               </div>
 
-              <!-- 94% (310:81) — All-time attendance consistency -->
+              <!-- All-time attendance consistency -->
               <div class="progress-value" id="progress-value" title="Foydalanuvchining barcha vaqtdagi faollik ko‘rsatkichi">94%</div>
             </div>
           </section>
 
-          <!-- 2. section-plan (310:85) [0, 192, 358×330] -->
+          <!-- 2. section-plan -->
           <section class="section-plan" aria-label="Kunlik reja">
             <div class="section-plan__header">
               <h2 class="section-title">Reja</h2>
-              <span class="section-meta">Unit 14 · s. 28</span>
+              <div class="section-plan__actions">
+                <span class="section-meta" id="plan-unit-meta">Unit 14 · s. 28</span>
+                <button type="button" class="plan-add-btn" id="btn-add-task">+ Qo‘shish</button>
+              </div>
             </div>
 
-            <!-- plan-card (310:87) [0, 28, 358×302] -->
+            <!-- plan-card -->
             <div class="plan-card" id="plan-card">
-              <!-- task-1 (310:88) [12, 12, 334×48] -->
+              <!-- task-1 -->
               <button type="button" class="task-row task-row--done" data-task-id="1" aria-pressed="true">
                 <span class="task-row__check task-row__check--done" aria-hidden="true">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -193,7 +221,7 @@
                 </span>
               </button>
 
-              <!-- task-2 (310:94) [12, 68, 334×48] -->
+              <!-- task-2 -->
               <button type="button" class="task-row task-row--done" data-task-id="2" aria-pressed="true">
                 <span class="task-row__check task-row__check--done" aria-hidden="true">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -207,7 +235,7 @@
                 </span>
               </button>
 
-              <!-- task-3 (310:100) [12, 124, 334×48] -->
+              <!-- task-3 -->
               <button type="button" class="task-row task-row--done" data-task-id="3" aria-pressed="true">
                 <span class="task-row__check task-row__check--done" aria-hidden="true">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -221,13 +249,13 @@
                 </span>
               </button>
 
-              <!-- task-current (310:106) [12, 180, 334×54] -->
+              <!-- task-current -->
               <button type="button" class="task-row task-row--current" data-task-id="4" aria-pressed="false">
                 <span class="task-water-surface" aria-hidden="true">
-                  <svg class="task-wave-svg task-wave-svg--back" width="668" height="54" viewBox="0 0 668 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="task-wave-svg task-wave-svg--back" viewBox="0 0 668 54" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M0 26 C 83 20, 167 32, 250 26 C 292 23, 315 25, 334 26 C 417 20, 501 32, 584 26 C 626 23, 649 25, 668 26 L 668 54 L 0 54 Z" fill="#D8EEEC" fill-opacity="0.9"/>
                   </svg>
-                  <svg class="task-wave-svg task-wave-svg--front" width="668" height="54" viewBox="0 0 668 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="task-wave-svg task-wave-svg--front" viewBox="0 0 668 54" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M0 27 C 76 21, 142 33, 218 27 C 276 22, 305 25, 334 27 C 410 21, 476 33, 552 27 C 610 22, 639 25, 668 27 L 668 54 L 0 54 Z" fill="#B5DAD9"/>
                     <path d="M0 27 C 76 21, 142 33, 218 27 C 276 22, 305 25, 334 27 C 410 21, 476 33, 552 27 C 610 22, 639 25, 668 27" stroke="#7DB9BA" stroke-opacity="0.55" stroke-width="2.5"/>
                   </svg>
@@ -240,7 +268,7 @@
                 <span class="task-row__badge">Hozir</span>
               </button>
 
-              <!-- task-future (310:113) [12, 242, 334×48] -->
+              <!-- task-future -->
               <button type="button" class="task-row task-row--future" data-task-id="5" aria-pressed="false">
                 <span class="task-row__check task-row__check--future" aria-hidden="true"></span>
                 <span class="task-row__body">
@@ -253,7 +281,7 @@
         </div>
 
         <!-- ==========================================================
-             TAB 2: KITOB (Figma Card / Active textbook 264:2219 + Unit 14)
+             TAB 2: KITOB (Active Textbook & Interactive Unit Reader)
              ========================================================== -->
         <div class="tab-panel" data-tab-panel="kitob" role="tabpanel" hidden>
           <section class="section-kitob" aria-label="Faol darslik">
@@ -269,7 +297,7 @@
               </label>
             </div>
 
-            <!-- Active Textbook Card (from Figma 264:2219) -->
+            <!-- Active Textbook Card -->
             <div class="textbook-card">
               <div class="textbook-card__top">
                 <div class="textbook-cover" aria-hidden="true">
@@ -282,27 +310,31 @@
               </div>
 
               <div class="textbook-card__progress-meta">
-                <span>Unit 58 / 145</span>
-                <span>40%</span>
+                <span id="book-unit-counter">Unit 14 / 145</span>
+                <span id="book-progress-pct">40%</span>
               </div>
               <div class="textbook-card__track" aria-hidden="true">
-                <div class="textbook-card__fill" style="width: 40%"></div>
+                <div class="textbook-card__fill" id="book-progress-fill" style="width: 40%"></div>
               </div>
             </div>
 
-            <!-- Current Unit Reading Excerpt (Unit 14 · s. 28) -->
+            <!-- Current Unit Reading Excerpt -->
             <div class="section-kitob__subhead">
               <h3 class="section-title">Bugungi mavzu</h3>
-              <span class="section-meta">Unit 14 · s. 28</span>
+              <div class="unit-nav-controls">
+                <button type="button" class="unit-nav-btn" id="btn-prev-unit" aria-label="Oldingi mavzu">←</button>
+                <span class="section-meta" id="reader-unit-meta">Unit 14 · s. 28</span>
+                <button type="button" class="unit-nav-btn" id="btn-next-unit" aria-label="Keyingi mavzu">→</button>
+              </div>
             </div>
 
             <div class="unit-reader-card">
               <div class="unit-reader-card__badge-row">
-                <span class="unit-reader-card__unit">Unit 14 · B bo‘lim</span>
-                <span class="unit-reader-card__page">s. 28</span>
+                <span class="unit-reader-card__unit" id="reader-unit-badge">Unit 14 · B bo‘lim</span>
+                <span class="unit-reader-card__page" id="reader-unit-page">s. 28</span>
               </div>
-              <h4 class="unit-reader-card__heading">Past perfect (I had done)</h4>
-              <p class="unit-reader-card__desc">
+              <h4 class="unit-reader-card__heading" id="reader-unit-heading">Past perfect (I had done)</h4>
+              <p class="unit-reader-card__desc" id="reader-unit-desc">
                 O‘tgan zamondagi biror voqeadan oldinroq sodir bo‘lib tugagan ish-harakat uchun <strong>had + past participle</strong> (<em>had gone, had seen, had broken</em>) ishlatiladi.
               </p>
 
@@ -315,101 +347,110 @@
                     <path d="M9.33333 7.58331H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
                     <path d="M9.33333 9.91669H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
                   </svg>
-                  <span class="quote-marker__source">Kitobda: Unit 14, B bo‘lim · s. 28</span>
+                  <span class="quote-marker__source" id="reader-quote-source">Kitobda: Unit 14, B bo‘lim · s. 28</span>
                 </div>
 
                 <div class="quote-marker__lines">
                   <div class="quote-marker__line-group">
                     <span class="quote-marker__highlight" aria-hidden="true"></span>
-                    <span class="quote-marker__text">When we got home last night, we found</span>
+                    <span class="quote-marker__text" id="reader-quote-line1">When we got home last night, we found</span>
                   </div>
                   <div class="quote-marker__line-group">
                     <span class="quote-marker__highlight" aria-hidden="true"></span>
-                    <span class="quote-marker__text">that somebody had broken into the flat.</span>
+                    <span class="quote-marker__text" id="reader-quote-line2">that somebody had broken into the flat.</span>
                   </div>
                 </div>
               </div>
+
+              <button type="button" class="unit-reader-card__cta" id="btn-practice-unit">
+                Ushbu mavzu bo‘yicha mashq qilish →
+              </button>
             </div>
           </section>
         </div>
 
         <!-- ==========================================================
-             TAB 3: REPETITOR (Figma Node 310:118 — 358 × 580 px)
+             TAB 3: REPETITOR (Interactive AI Grammar & Translation Coach)
              ========================================================== -->
         <div class="tab-panel" data-tab-panel="repetitor" role="tabpanel" hidden>
           <section class="section-repetitor" aria-label="Repetitor tahlili">
-            <h2 class="section-title section-repetitor__title">Repetitor</h2>
+            <div class="section-repetitor__top">
+              <h2 class="section-title">Repetitor</h2>
+              <button type="button" class="repetitor-next-btn" id="btn-next-exercise">Keyingi mashq →</button>
+            </div>
 
-            <!-- repetitor-card (310:120) [0, 28, 358×552] -->
+            <!-- repetitor-card -->
             <div class="repetitor-card">
-              <!-- repetitor-header (310:121) [16, 16, 326×20] -->
-              <div class="repetitor-header">
-                <span class="repetitor-header__icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <rect width="20" height="20" rx="10" fill="#0E7C86"/>
-                    <path d="M16 4L7.75 16L4 10.5455" stroke-width="1.13" stroke-linecap="round" stroke="white"/>
-                  </svg>
-                </span>
-                <span class="repetitor-header__label">14.2-mashq, 4-gap</span>
-              </div>
-
-              <!-- Student sentence (310:125) [16, 48, 326×44] -->
-              <p class="repetitor-sentence">
-                When we got home last night, we found that somebody broke into the flat.
-              </p>
-
-              <!-- correction-row (310:126) [16, 104, 326×20] -->
-              <div class="correction-row">
-                <span class="correction-row__context">somebody</span>
-                <span class="correction-row__wrong">broke</span>
-                <span class="correction-row__arrow" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 3.33276L12.6672 7.99996L8 12.6672" stroke-linecap="round" stroke="#6B7E82"/>
-                    <path d="M3.33276 8H12.6672" stroke-linecap="round" stroke="#6B7E82"/>
-                  </svg>
-                </span>
-                <span class="correction-row__right">had broken</span>
-              </div>
-
-              <!-- Uzbek explanation (310:133) [16, 136, 326×60] -->
-              <p class="repetitor-explanation">
-                Uyga kelishingizdan oldin kimdir kvartiraga kirib bo‘lgan edi. O‘tgan zamondagi voqeadan oldinroq tugagan ish uchun Past Perfect ishlatiladi: had + fe’lning 3-shakli.
-              </p>
-
-              <!-- quote-marker (310:134) [16, 208, 326×124] -->
-              <div class="quote-marker">
-                <div class="quote-marker__head">
-                  <svg class="quote-marker__icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <path d="M8.16667 1.16669H3.5C3.19058 1.16669 2.89383 1.2896 2.67504 1.50839C2.45625 1.72719 2.33333 2.02393 2.33333 2.33335V11.6667C2.33333 11.9761 2.45625 12.2729 2.67504 12.4917C2.89383 12.7104 3.19058 12.8334 3.5 12.8334H10.5C10.8094 12.8334 11.1062 12.7104 11.325 12.4917C11.5438 12.2729 11.6667 11.9761 11.6667 11.6667V4.66669L8.16667 1.16669Z" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M8.16667 1.16669V4.66669H11.6667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M5.83333 5.25H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
-                    <path d="M9.33333 7.58331H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
-                    <path d="M9.33333 9.91669H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
-                  </svg>
-                  <span class="quote-marker__source">Kitobda: Unit 14, B bo‘lim · s. 28</span>
+              <div class="repetitor-body">
+                <!-- repetitor-header -->
+                <div class="repetitor-header">
+                  <span class="repetitor-header__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <rect width="20" height="20" rx="10" fill="#0E7C86"/>
+                      <path d="M16 4L7.75 16L4 10.5455" stroke-width="1.13" stroke-linecap="round" stroke="white"/>
+                    </svg>
+                  </span>
+                  <span class="repetitor-header__label" id="rep-exercise-label">14.2-mashq, 4-gap (1 / 4)</span>
                 </div>
 
-                <div class="quote-marker__lines">
-                  <div class="quote-marker__line-group">
-                    <span class="quote-marker__highlight" aria-hidden="true"></span>
-                    <span class="quote-marker__text">When we got home last night, we found</span>
-                  </div>
-                  <div class="quote-marker__line-group">
-                    <span class="quote-marker__highlight" aria-hidden="true"></span>
-                    <span class="quote-marker__text">that somebody had broken into the flat.</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- practice (310:150) [16, 344, 326×92] -->
-              <div class="practice-box">
-                <span class="practice-box__label">Endi o‘zingiz tarjima qiling</span>
-                <p class="practice-box__prompt">
-                  Men vokzalga yetib kelganimda, poyezd allaqachon ketib bo‘lgan edi.
+                <!-- Student sentence -->
+                <p class="repetitor-sentence" id="rep-student-sentence">
+                  When we got home last night, we found that somebody broke into the flat.
                 </p>
+
+                <!-- correction-row -->
+                <div class="correction-row">
+                  <span class="correction-row__context" id="rep-corr-context">somebody</span>
+                  <span class="correction-row__wrong" id="rep-corr-wrong">broke</span>
+                  <span class="correction-row__arrow" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 3.33276L12.6672 7.99996L8 12.6672" stroke-linecap="round" stroke="#6B7E82"/>
+                      <path d="M3.33276 8H12.6672" stroke-linecap="round" stroke="#6B7E82"/>
+                    </svg>
+                  </span>
+                  <span class="correction-row__right" id="rep-corr-right">had broken</span>
+                </div>
+
+                <!-- Uzbek explanation -->
+                <p class="repetitor-explanation" id="rep-explanation">
+                  Uyga kelishingizdan oldin kimdir kvartiraga kirib bo‘lgan edi. O‘tgan zamondagi voqeadan oldinroq tugagan ish uchun Past Perfect ishlatiladi: had + fe’lning 3-shakli.
+                </p>
+
+                <!-- quote-marker -->
+                <div class="quote-marker">
+                  <div class="quote-marker__head">
+                    <svg class="quote-marker__icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <path d="M8.16667 1.16669H3.5C3.19058 1.16669 2.89383 1.2896 2.67504 1.50839C2.45625 1.72719 2.33333 2.02393 2.33333 2.33335V11.6667C2.33333 11.9761 2.45625 12.2729 2.67504 12.4917C2.89383 12.7104 3.19058 12.8334 3.5 12.8334H10.5C10.8094 12.8334 11.1062 12.7104 11.325 12.4917C11.5438 12.2729 11.6667 11.9761 11.6667 11.6667V4.66669L8.16667 1.16669Z" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M8.16667 1.16669V4.66669H11.6667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M5.83333 5.25H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
+                      <path d="M9.33333 7.58331H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
+                      <path d="M9.33333 9.91669H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
+                    </svg>
+                    <span class="quote-marker__source" id="rep-quote-source">Kitobda: Unit 14, B bo‘lim · s. 28</span>
+                  </div>
+
+                  <div class="quote-marker__lines">
+                    <div class="quote-marker__line-group">
+                      <span class="quote-marker__highlight" aria-hidden="true"></span>
+                      <span class="quote-marker__text" id="rep-quote-line1">When we got home last night, we found</span>
+                    </div>
+                    <div class="quote-marker__line-group">
+                      <span class="quote-marker__highlight" aria-hidden="true"></span>
+                      <span class="quote-marker__text" id="rep-quote-line2">that somebody had broken into the flat.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- practice -->
+                <div class="practice-box">
+                  <span class="practice-box__label" id="practice-label">Endi o‘zingiz tarjima qiling</span>
+                  <p class="practice-box__prompt" id="practice-prompt">
+                    Men vokzalga yetib kelganimda, poyezd allaqachon ketib bo‘lgan edi.
+                  </p>
+                </div>
               </div>
 
-              <!-- composer (310:153) [16, 448, 326×88] -->
+              <!-- composer — Pinned stationary at the bottom of repetitor-card -->
               <form class="composer-box" id="repetitor-form" novalidate>
                 <input
                   type="text"
@@ -417,6 +458,7 @@
                   id="composer-input"
                   placeholder="Javobingizni yozing"
                   autocomplete="off"
+                  enterkeyhint="send"
                   aria-label="Tarjima javobingizni yozing"
                 />
                 <div class="composer-box__actions">
@@ -444,14 +486,14 @@
         </div>
 
         <!-- ==========================================================
-             TAB 4: TAKRORLASH (Figma Node 310:164 — 358 × 197 px)
+             TAB 4: TAKRORLASH (Interactive Spaced Repetition Review)
              ========================================================== -->
         <div class="tab-panel" data-tab-panel="takrorlash" role="tabpanel" hidden>
           <section class="section-review" aria-label="Bugun takrorlanadi">
             <div class="section-review__header">
               <h2 class="section-title">Bugun takrorlanadi</h2>
               <button type="button" class="section-review__start" id="btn-review-start">
-                <span>Boshlash</span>
+                <span id="review-start-label">Boshlash</span>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M3.33276 8H12.6672" stroke="#0E7C86" stroke-linecap="round"/>
                   <path d="M8 3.33276L12.6672 7.99996L8 12.6672" stroke="#0E7C86" stroke-linecap="round"/>
@@ -459,9 +501,8 @@
               </button>
             </div>
 
-            <!-- review-card (310:172) [0, 28, 358×169] -->
-            <div class="review-card">
-              <!-- Row 1 (310:173) [0, 0, 358×84] -->
+            <!-- review-card list -->
+            <div class="review-card" id="review-list-card">
               <div class="review-item" data-review-id="1">
                 <span class="review-item__badge">3-kun</span>
                 <div class="review-item__content">
@@ -473,7 +514,6 @@
 
               <div class="review-divider" role="separator"></div>
 
-              <!-- Row 2 (310:181) [0, 85, 358×84] -->
               <div class="review-item" data-review-id="2">
                 <span class="review-item__badge">7-kun</span>
                 <div class="review-item__content">
@@ -482,14 +522,45 @@
                 </div>
                 <span class="review-item__meta">Unit 7 · s. 14</span>
               </div>
+
+              <div class="review-divider" role="separator"></div>
+
+              <div class="review-item" data-review-id="3">
+                <span class="review-item__badge">1-kun</span>
+                <div class="review-item__content">
+                  <span class="review-item__wrong">somebody broke</span>
+                  <span class="review-item__right">somebody had broken into</span>
+                </div>
+                <span class="review-item__meta">Unit 14 · s. 28</span>
+              </div>
+            </div>
+
+            <!-- Interactive Flashcard Quiz Box (Active during review session) -->
+            <div class="flashcard-session" id="flashcard-session" hidden>
+              <div class="flashcard-session__top">
+                <span class="unit-reader-card__unit" id="fc-badge">3-kun · Unit 4</span>
+                <span class="section-meta" id="fc-counter">1 / 3</span>
+              </div>
+              <p class="flashcard-session__prompt">Xato variantni to‘g‘ri jumla bilan eslang:</p>
+              <div class="flashcard-session__wrong" id="fc-wrong">I am knowing</div>
+              <div class="flashcard-session__answer" id="fc-answer" hidden>
+                <div class="flashcard-session__right" id="fc-right">I know the answer now</div>
+                <p class="flashcard-session__rule" id="fc-rule">State verbs (know, like, understand) Continuous zamonda ishlatilmaydi.</p>
+              </div>
+              <div class="flashcard-session__actions">
+                <button type="button" class="fc-btn fc-btn--reveal" id="btn-fc-reveal">Javobni ko‘rsatish</button>
+                <div class="flashcard-session__grade" id="fc-grade-row" hidden>
+                  <button type="button" class="fc-btn fc-btn--hard" id="btn-fc-hard">Qiyin</button>
+                  <button type="button" class="fc-btn fc-btn--good" id="btn-fc-good">Eslab qoldim ✓</button>
+                </div>
+              </div>
             </div>
           </section>
         </div>
       </div>
 
-      <!-- Bottom Nav Dock (310:188) [0, 784, 390×60] -->
+      <!-- Bottom Nav Dock -->
       <nav class="bottom-nav" aria-label="Asosiy navigatsiya" role="tablist">
-        <!-- Pattern // Samarkand star & cross (SVG) (294:441) -->
         <img
           class="bottom-nav__pattern"
           src="/public/assets/nav-pattern.svg"
@@ -499,7 +570,7 @@
           aria-hidden="true"
         />
 
-        <!-- Tab 1: Bugun (310:189) [x:9] -->
+        <!-- Tab 1: Bugun -->
         <button
           type="button"
           class="bottom-nav__tab is-active"
@@ -524,7 +595,7 @@
           <span class="bottom-nav__label">Bugun</span>
         </button>
 
-        <!-- Tab 2: Kitob (310:201) [x:84] -->
+        <!-- Tab 2: Kitob -->
         <button
           type="button"
           class="bottom-nav__tab"
@@ -541,7 +612,7 @@
           <span class="bottom-nav__label">Kitob</span>
         </button>
 
-        <!-- Tab 3: Repetitor (310:206) [x:195] -->
+        <!-- Tab 3: Repetitor -->
         <button
           type="button"
           class="bottom-nav__tab"
@@ -557,7 +628,7 @@
           <span class="bottom-nav__label">Repetitor</span>
         </button>
 
-        <!-- Tab 4: Takrorlash (310:210) [x:305] -->
+        <!-- Tab 4: Takrorlash -->
         <button
           type="button"
           class="bottom-nav__tab"
@@ -574,9 +645,72 @@
           <span class="bottom-nav__label">Takrorlash</span>
         </button>
       </nav>
+
+      <!-- User Profile & Logout Sheet -->
+      <div class="sheet-backdrop" id="profile-sheet" hidden>
+        <div class="sheet-modal" role="dialog" aria-modal="true" aria-labelledby="profile-sheet-name">
+          <div class="sheet-modal__head">
+            <div class="profile-summary">
+              <div class="profile-summary__avatar" id="profile-sheet-avatar">U</div>
+              <div>
+                <h3 class="profile-summary__name" id="profile-sheet-name">Foydalanuvchi</h3>
+                <p class="profile-summary__email" id="profile-sheet-email">user@gmail.com</p>
+              </div>
+            </div>
+            <button type="button" class="sheet-modal__close" id="btn-close-profile-sheet" aria-label="Yopish">✕</button>
+          </div>
+          <div class="profile-stats-row">
+            <div class="profile-stat-box">
+              <span class="profile-stat-box__val" id="profile-stat-pct">94%</span>
+              <span class="profile-stat-box__lbl">Doimiylik</span>
+            </div>
+            <div class="profile-stat-box">
+              <span class="profile-stat-box__val" id="profile-stat-days">16 kun</span>
+              <span class="profile-stat-box__lbl">Faol kunlar</span>
+            </div>
+          </div>
+          <button type="button" class="profile-logout-btn" id="btn-logout">
+            Hisobdan chiqish
+          </button>
+        </div>
+      </div>
+
+      <!-- Add New Daily Task Sheet -->
+      <div class="sheet-backdrop" id="add-task-sheet" hidden>
+        <div class="sheet-modal" role="dialog" aria-modal="true" aria-labelledby="add-task-title">
+          <div class="sheet-modal__head">
+            <h3 class="profile-summary__name" id="add-task-title">Yangi vazifa qo‘shish</h3>
+            <button type="button" class="sheet-modal__close" id="btn-close-task-sheet" aria-label="Yopish">✕</button>
+          </div>
+          <form class="sheet-form" id="add-task-form">
+            <label class="sheet-field">
+              <span class="sheet-field__label">Vazifa nomi</span>
+              <input
+                type="text"
+                id="new-task-title"
+                class="sheet-field__input"
+                placeholder="Masalan: Unit 15 qoidasini o‘qish"
+                required
+                enterkeyhint="next"
+              />
+            </label>
+            <label class="sheet-field">
+              <span class="sheet-field__label">Vaqt va sahifa</span>
+              <input
+                type="text"
+                id="new-task-sub"
+                class="sheet-field__input"
+                placeholder="Masalan: 15 daq · s. 30"
+                enterkeyhint="done"
+              />
+            </label>
+            <button type="submit" class="sheet-submit-btn">Rejaga qo‘shish</button>
+          </form>
+        </div>
+      </div>
     </section>
   </main>
 
-  <script type="module" src="/src/main.js?v=3"></script>
+  <script type="module" src="/src/main.js?v=7"></script>
 </body>
 </html>
