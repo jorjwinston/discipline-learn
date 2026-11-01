@@ -7,6 +7,7 @@
 
 const STORAGE_KEYS = {
   USER: "dl_auth_user_v1",
+  GOOGLE_CLIENT_ID: "dl_google_client_id_v1",
   TASKS: "dl_daily_tasks_v1",
   BOOK: "dl_active_book_v1",
   UNIT_INDEX: "dl_unit_idx_v1",
@@ -14,17 +15,20 @@ const STORAGE_KEYS = {
   REVIEWS: "dl_reviews_v1",
 };
 
+// Default Google OAuth Web Client ID (can also be overridden via ?client_id= or modal)
+const DEFAULT_GOOGLE_CLIENT_ID = "";
+
 const body = document.body;
 const metaThemeColor = document.getElementById("meta-theme-color");
 const screenApp = document.getElementById("screen-app");
 
 // Auth & Profile DOM
 const googleLoginBtn = document.getElementById("btn-google-login");
+const googleBtnLabel = document.getElementById("google-btn-label");
 const googleAuthSheet = document.getElementById("google-auth-sheet");
 const closeAuthSheetBtn = document.getElementById("btn-close-auth-sheet");
 const googleAuthForm = document.getElementById("google-auth-form");
-const authNameInput = document.getElementById("auth-name-input");
-const authEmailInput = document.getElementById("auth-email-input");
+const authClientIdInput = document.getElementById("auth-client-id-input");
 
 const avatarBtn = document.getElementById("btn-avatar");
 const avatarInitialsEl = document.getElementById("avatar-initials");
@@ -141,7 +145,7 @@ if (progressDateEl) {
 }
 
 /**
- * 2. Authentication & User Profile State
+ * 2. Real Google OAuth 2.0 Verification (Google Identity Services)
  */
 function getInitials(fullName) {
   const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
@@ -150,11 +154,51 @@ function getInitials(fullName) {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
+function getGoogleClientId() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromQuery = urlParams.get("client_id");
+  if (fromQuery && fromQuery.includes(".apps.googleusercontent.com")) {
+    localStorage.setItem(STORAGE_KEYS.GOOGLE_CLIENT_ID, fromQuery.trim());
+    return fromQuery.trim();
+  }
+  return (
+    localStorage.getItem(STORAGE_KEYS.GOOGLE_CLIENT_ID) ||
+    DEFAULT_GOOGLE_CLIENT_ID ||
+    ""
+  ).trim();
+}
+
 function setViewMode(mode) {
   body.setAttribute("data-view-mode", mode);
   if (metaThemeColor) {
     metaThemeColor.setAttribute("content", mode === "login" ? "#0e7c86" : "#f4f8f8");
   }
+}
+
+function applyUserToUI(user) {
+  const initials = user.initials || getInitials(user.name);
+  if (avatarBtn) {
+    avatarBtn.setAttribute("aria-label", `${user.name} profili`);
+    if (user.picture) {
+      avatarBtn.innerHTML = `<img src="${user.picture}" alt="${user.name}" referrerpolicy="no-referrer" />`;
+    } else {
+      avatarBtn.innerHTML = `<span id="avatar-initials">${initials}</span>`;
+    }
+  }
+  if (profileSheetAvatar) {
+    if (user.picture) {
+      profileSheetAvatar.innerHTML = `<img src="${user.picture}" alt="${user.name}" referrerpolicy="no-referrer" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+    } else {
+      profileSheetAvatar.textContent = initials;
+    }
+  }
+  if (profileSheetName) profileSheetName.textContent = user.name;
+  if (profileSheetEmail) profileSheetEmail.textContent = user.email;
+  const consistency = user.consistency || 94;
+  const activeDays = user.activeDays || 1;
+  if (progressValueEl) progressValueEl.textContent = `${consistency}%`;
+  if (profileStatPct) profileStatPct.textContent = `${consistency}%`;
+  if (profileStatDays) profileStatDays.textContent = `${activeDays} kun`;
 }
 
 function loadUserSession() {
@@ -174,24 +218,60 @@ function loadUserSession() {
   }
 }
 
-function applyUserToUI(user) {
-  const initials = user.initials || getInitials(user.name);
-  if (avatarInitialsEl) avatarInitialsEl.textContent = initials;
-  if (avatarBtn) avatarBtn.setAttribute("aria-label", `${user.name} profili`);
-  if (profileSheetAvatar) profileSheetAvatar.textContent = initials;
-  if (profileSheetName) profileSheetName.textContent = user.name;
-  if (profileSheetEmail) profileSheetEmail.textContent = user.email;
-  const consistency = user.consistency || 94;
-  const activeDays = user.activeDays || 16;
-  if (progressValueEl) progressValueEl.textContent = `${consistency}%`;
-  if (profileStatPct) profileStatPct.textContent = `${consistency}%`;
-  if (profileStatDays) profileStatDays.textContent = `${activeDays} kun`;
+function startRealGoogleSignIn(clientId) {
+  if (!window.google?.accounts?.oauth2) {
+    alert("Google Identity Services yuklanmoqda, 1 soniyadan so‘ng qayta bosing.");
+    return;
+  }
+
+  if (googleBtnLabel) googleBtnLabel.textContent = "Google bilan bog‘lanmoqda...";
+
+  const tokenClient = window.google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: "openid email profile",
+    callback: async (tokenResponse) => {
+      if (tokenResponse.error) {
+        if (googleBtnLabel) googleBtnLabel.textContent = "Google hisobi orqali davom etish";
+        return;
+      }
+      try {
+        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        if (!res.ok) throw new Error("Google userinfo xatosi");
+        const profile = await res.json();
+        const user = {
+          sub: profile.sub,
+          name: profile.name || profile.given_name || "Google Foydalanuvchi",
+          email: profile.email || "",
+          picture: profile.picture || "",
+          initials: getInitials(profile.name || profile.email),
+          consistency: 100,
+          activeDays: 1,
+          lastLogin: new Date().toISOString().slice(0, 10),
+        };
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+        applyUserToUI(user);
+        if (googleBtnLabel) googleBtnLabel.textContent = "Google hisobi orqali davom etish";
+        setViewMode("app");
+      } catch {
+        if (googleBtnLabel) googleBtnLabel.textContent = "Google hisobi orqali davom etish";
+      }
+    },
+  });
+
+  tokenClient.requestAccessToken({ prompt: "select_account" });
 }
 
-if (googleLoginBtn && googleAuthSheet) {
+if (googleLoginBtn) {
   googleLoginBtn.addEventListener("click", () => {
-    googleAuthSheet.hidden = false;
-    setTimeout(() => authNameInput?.focus(), 60);
+    const clientId = getGoogleClientId();
+    if (clientId) {
+      startRealGoogleSignIn(clientId);
+    } else if (googleAuthSheet) {
+      googleAuthSheet.hidden = false;
+      setTimeout(() => authClientIdInput?.focus(), 60);
+    }
   });
 }
 
@@ -204,22 +284,11 @@ if (closeAuthSheetBtn && googleAuthSheet) {
 if (googleAuthForm) {
   googleAuthForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const name = authNameInput.value.trim();
-    const email = authEmailInput.value.trim();
-    if (!name || !email) return;
-
-    const user = {
-      name,
-      email,
-      initials: getInitials(name),
-      consistency: 94,
-      activeDays: 16,
-      lastLogin: new Date().toISOString().slice(0, 10),
-    };
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-    applyUserToUI(user);
+    const clientId = authClientIdInput.value.trim();
+    if (!clientId) return;
+    localStorage.setItem(STORAGE_KEYS.GOOGLE_CLIENT_ID, clientId);
     googleAuthSheet.hidden = true;
-    setViewMode("app");
+    startRealGoogleSignIn(clientId);
   });
 }
 
@@ -237,7 +306,11 @@ if (closeProfileSheetBtn && profileSheet) {
 
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
+    const raw = localStorage.getItem(STORAGE_KEYS.USER);
     localStorage.removeItem(STORAGE_KEYS.USER);
+    if (raw && window.google?.accounts?.id) {
+      window.google.accounts.id.disableAutoSelect();
+    }
     if (profileSheet) profileSheet.hidden = true;
     setViewMode("login");
   });
