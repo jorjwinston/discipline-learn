@@ -139,9 +139,6 @@ async function runStructuredGeneration(apiKey, prompt, schema) {
     model: "gemini-3.8-flash",
     input: prompt,
     response_format: schema,
-    generation_config: {
-      thinking_level: "minimal",
-    },
   });
 
   const textOutput = interaction.outputs?.find((o) => o.type === "text")?.text;
