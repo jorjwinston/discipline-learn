@@ -132,13 +132,29 @@ const CHECK_ANSWER_SCHEMA = {
   ],
 };
 
+function extractInteractionText(interaction) {
+  if (Array.isArray(interaction?.steps)) {
+    for (const step of interaction.steps) {
+      if (step.type === "model_output" && Array.isArray(step.content)) {
+        const textPart = step.content.find((c) => c.type === "text" && c.text);
+        if (textPart?.text) return textPart.text;
+      }
+    }
+  }
+  if (Array.isArray(interaction?.outputs)) {
+    const legacyPart = interaction.outputs.find((o) => o.type === "text" && o.text);
+    if (legacyPart?.text) return legacyPart.text;
+  }
+  return "";
+}
+
 async function callInteractionsModel(ai, model, prompt, schema) {
   const interaction = await ai.interactions.create({
     model,
     input: prompt,
     response_format: schema,
   });
-  const textOutput = interaction.outputs?.find((o) => o.type === "text")?.text;
+  const textOutput = extractInteractionText(interaction);
   if (!textOutput) {
     throw new Error("Empty model response");
   }
