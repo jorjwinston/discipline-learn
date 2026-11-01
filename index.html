@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/src/styles/main.css?v=10" />
+  <link rel="stylesheet" href="/src/styles/main.css?v=12" />
 </head>
 <body data-view-mode="login">
   <main class="stage-container" id="stage-container">
@@ -113,6 +113,9 @@
       data-active-tab="bugun"
       aria-label="Discipline Learn asosiy ish maydoni"
     >
+      <!-- Hidden Global PDF File Input (Triggered from any tab's upload CTA) -->
+      <input type="file" id="pdf-upload-input" accept=".pdf,application/pdf" hidden />
+
       <!-- Top Header -->
       <header class="app-header">
         <div class="app-header__brand">
@@ -147,13 +150,13 @@
             <div class="progress-card" id="progress-card">
               <div class="progress-header">
                 <div class="status-pill">
-                  <span class="status-pill__text">Umumiy progress</span>
+                  <span class="status-pill__text" id="progress-status-label">Kunlik natija</span>
                 </div>
                 <time class="progress-date" id="progress-date" datetime="2026-11-01">Bugun</time>
               </div>
 
               <!-- Animated Liquid Water Body & Dual Wave Surface -->
-              <div class="water-surface" aria-hidden="true">
+              <div class="water-surface" id="progress-water-surface" aria-hidden="true">
                 <svg class="water-wave-svg water-wave-svg--back" viewBox="0 0 716 176" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M0 36 C 90 22, 179 48, 268 35 C 320 27, 340 32, 358 36 C 448 22, 537 48, 626 35 C 678 27, 698 32, 716 36 L 716 176 L 0 176 Z" fill="#D8EEEC" fill-opacity="0.85"/>
                 </svg>
@@ -171,8 +174,8 @@
                 </svg>
               </div>
 
-              <!-- All-time attendance consistency -->
-              <div class="progress-value" id="progress-value" title="Foydalanuvchining barcha vaqtdagi faollik ko‘rsatkichi">94%</div>
+              <!-- Dynamic completion percentage -->
+              <div class="progress-value" id="progress-value" title="Bugungi reja bajarilish ko‘rsatkichi">0%</div>
             </div>
           </section>
 
@@ -181,83 +184,44 @@
             <div class="section-plan__header">
               <h2 class="section-title">Reja</h2>
               <div class="section-plan__actions">
-                <span class="section-meta" id="plan-unit-meta">Unit 14 · s. 28</span>
-                <button type="button" class="plan-add-btn" id="btn-add-task">+ Qo‘shish</button>
+                <span class="section-meta" id="plan-unit-meta">Darslik yuklanmagan</span>
+                <button type="button" class="plan-add-btn" id="btn-add-task" hidden>+ Qo‘shish</button>
               </div>
             </div>
 
-            <!-- plan-card -->
-            <div class="plan-card" id="plan-card">
-              <!-- task-1 -->
-              <button type="button" class="task-row task-row--done" data-task-id="1" aria-pressed="true">
-                <span class="task-row__check task-row__check--done" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <rect width="20" height="20" rx="10" fill="#557329"/>
-                    <path d="M16 4L7.75 16L4 10.5455" stroke-width="1.13" stroke-linecap="round" stroke="white"/>
-                  </svg>
-                </span>
-                <span class="task-row__body">
-                  <span class="task-row__title">Unit 14 qoidasini o‘qish: Past Perfect</span>
-                  <span class="task-row__sub">12 daq · s. 28</span>
-                </span>
-              </button>
+            <!-- Empty State: Shown right after login when no PDF book is uploaded yet -->
+            <div class="empty-onboarding-card" id="empty-plan-card">
+              <div class="empty-onboarding-card__icon" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="#0E7C86" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M14 2V8H20" stroke="#0E7C86" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12 18V12" stroke="#0E7C86" stroke-width="1.75" stroke-linecap="round"/>
+                  <path d="M9.5 14.5L12 12L14.5 14.5" stroke="#0E7C86" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h3 class="empty-onboarding-card__title">PDF darsligingizni yuklang</h3>
+              <p class="empty-onboarding-card__desc">
+                O‘rganmoqchi bo‘lgan PDF kitobingizni yuklang. AI uni tahlil qilib, shaxsiy kunlik reja, mavzu konspekti va mashqlar tuzib beradi.
+              </p>
 
-              <!-- task-2 -->
-              <button type="button" class="task-row task-row--done" data-task-id="2" aria-pressed="true">
-                <span class="task-row__check task-row__check--done" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <rect width="20" height="20" rx="10" fill="#557329"/>
-                    <path d="M16 4L7.75 16L4 10.5455" stroke-width="1.13" stroke-linecap="round" stroke="white"/>
-                  </svg>
-                </span>
-                <span class="task-row__body">
-                  <span class="task-row__title">14.1-mashq, 8 ta gap</span>
-                  <span class="task-row__sub">8 / 8 to‘g‘ri · s. 29</span>
-                </span>
-              </button>
+              <!-- AI Analysis Progress Indicator (Visible while parsing PDF + calling Gemini) -->
+              <div class="ai-loading-box" id="ai-loading-box" hidden>
+                <div class="ai-loading-box__top">
+                  <span class="ai-loading-box__status" id="ai-loading-status">PDF sahifalari o‘qilmoqda...</span>
+                  <span class="ai-loading-box__pct" id="ai-loading-pct">25%</span>
+                </div>
+                <div class="ai-loading-box__track">
+                  <div class="ai-loading-box__fill" id="ai-loading-fill" style="width: 25%"></div>
+                </div>
+              </div>
 
-              <!-- task-3 -->
-              <button type="button" class="task-row task-row--done" data-task-id="3" aria-pressed="true">
-                <span class="task-row__check task-row__check--done" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <rect width="20" height="20" rx="10" fill="#557329"/>
-                    <path d="M16 4L7.75 16L4 10.5455" stroke-width="1.13" stroke-linecap="round" stroke="white"/>
-                  </svg>
-                </span>
-                <span class="task-row__body">
-                  <span class="task-row__title">14.2-mashq, 6 ta gap</span>
-                  <span class="task-row__sub">4 / 6 to‘g‘ri · 2 ta xato takrorlashga qo‘shildi</span>
-                </span>
-              </button>
-
-              <!-- task-current -->
-              <button type="button" class="task-row task-row--current" data-task-id="4" aria-pressed="false">
-                <span class="task-water-surface" aria-hidden="true">
-                  <svg class="task-wave-svg task-wave-svg--back" viewBox="0 0 668 54" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0 26 C 83 20, 167 32, 250 26 C 292 23, 315 25, 334 26 C 417 20, 501 32, 584 26 C 626 23, 649 25, 668 26 L 668 54 L 0 54 Z" fill="#D8EEEC" fill-opacity="0.9"/>
-                  </svg>
-                  <svg class="task-wave-svg task-wave-svg--front" viewBox="0 0 668 54" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0 27 C 76 21, 142 33, 218 27 C 276 22, 305 25, 334 27 C 410 21, 476 33, 552 27 C 610 22, 639 25, 668 27 L 668 54 L 0 54 Z" fill="#B5DAD9"/>
-                    <path d="M0 27 C 76 21, 142 33, 218 27 C 276 22, 305 25, 334 27 C 410 21, 476 33, 552 27 C 610 22, 639 25, 668 27" stroke="#7DB9BA" stroke-opacity="0.55" stroke-width="2.5"/>
-                  </svg>
-                </span>
-                <span class="task-row__check task-row__check--current" aria-hidden="true"></span>
-                <span class="task-row__body task-row__body--current">
-                  <span class="task-row__title task-row__title--current">2 ta xatoni repetitor bilan ko‘rib chiqish</span>
-                  <span class="task-row__sub task-row__sub--current">5 daq · s. 28</span>
-                </span>
-                <span class="task-row__badge">Hozir</span>
-              </button>
-
-              <!-- task-future -->
-              <button type="button" class="task-row task-row--future" data-task-id="5" aria-pressed="false">
-                <span class="task-row__check task-row__check--future" aria-hidden="true"></span>
-                <span class="task-row__body">
-                  <span class="task-row__title">Past Perfect bilan o‘zingiz 3 ta gap yozing</span>
-                  <span class="task-row__sub task-row__sub--future">10 daq · yozma</span>
-                </span>
+              <button type="button" class="empty-onboarding-card__btn" id="btn-upload-from-plan">
+                PDF darslik tanlash va reja tuzish
               </button>
             </div>
+
+            <!-- Dynamic plan-card (Populated after PDF upload & AI generation) -->
+            <div class="plan-card" id="plan-card" hidden></div>
           </section>
         </div>
 
@@ -268,84 +232,95 @@
           <section class="section-kitob" aria-label="Faol darslik">
             <div class="section-kitob__header">
               <h2 class="section-title">Darslik</h2>
-              <label class="kitob-upload-btn" for="pdf-upload-input">
+              <button type="button" class="kitob-upload-btn" id="btn-upload-from-kitob">
                 <svg width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                   <path d="M3.75 9H14.25" stroke="#0E7C86" stroke-width="1.3" stroke-linecap="round"/>
                   <path d="M9 3.75V14.25" stroke="#0E7C86" stroke-width="1.3" stroke-linecap="round"/>
                 </svg>
-                <span>Darslik qo‘shish</span>
-                <input type="file" id="pdf-upload-input" accept=".pdf" hidden />
-              </label>
-            </div>
-
-            <!-- Active Textbook Card -->
-            <div class="textbook-card">
-              <div class="textbook-card__top">
-                <div class="textbook-cover" aria-hidden="true">
-                  <span class="textbook-cover__spine"></span>
-                </div>
-                <div class="textbook-info">
-                  <h3 class="textbook-info__title" id="active-book-title">English Grammar in Use</h3>
-                  <p class="textbook-info__author" id="active-book-author">Raymond Murphy, 5-nashr</p>
-                </div>
-              </div>
-
-              <div class="textbook-card__progress-meta">
-                <span id="book-unit-counter">Unit 14 / 145</span>
-                <span id="book-progress-pct">40%</span>
-              </div>
-              <div class="textbook-card__track" aria-hidden="true">
-                <div class="textbook-card__fill" id="book-progress-fill" style="width: 40%"></div>
-              </div>
-            </div>
-
-            <!-- Current Unit Reading Excerpt -->
-            <div class="section-kitob__subhead">
-              <h3 class="section-title">Bugungi mavzu</h3>
-              <div class="unit-nav-controls">
-                <button type="button" class="unit-nav-btn" id="btn-prev-unit" aria-label="Oldingi mavzu">←</button>
-                <span class="section-meta" id="reader-unit-meta">Unit 14 · s. 28</span>
-                <button type="button" class="unit-nav-btn" id="btn-next-unit" aria-label="Keyingi mavzu">→</button>
-              </div>
-            </div>
-
-            <div class="unit-reader-card">
-              <div class="unit-reader-card__badge-row">
-                <span class="unit-reader-card__unit" id="reader-unit-badge">Unit 14 · B bo‘lim</span>
-                <span class="unit-reader-card__page" id="reader-unit-page">s. 28</span>
-              </div>
-              <h4 class="unit-reader-card__heading" id="reader-unit-heading">Past perfect (I had done)</h4>
-              <p class="unit-reader-card__desc" id="reader-unit-desc">
-                O‘tgan zamondagi biror voqeadan oldinroq sodir bo‘lib tugagan ish-harakat uchun <strong>had + past participle</strong> (<em>had gone, had seen, had broken</em>) ishlatiladi.
-              </p>
-
-              <div class="quote-marker quote-marker--in-kitob">
-                <div class="quote-marker__head">
-                  <svg class="quote-marker__icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <path d="M8.16667 1.16669H3.5C3.19058 1.16669 2.89383 1.2896 2.67504 1.50839C2.45625 1.72719 2.33333 2.02393 2.33333 2.33335V11.6667C2.33333 11.9761 2.45625 12.2729 2.67504 12.4917C2.89383 12.7104 3.19058 12.8334 3.5 12.8334H10.5C10.8094 12.8334 11.1062 12.7104 11.325 12.4917C11.5438 12.2729 11.6667 11.9761 11.6667 11.6667V4.66669L8.16667 1.16669Z" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M8.16667 1.16669V4.66669H11.6667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M5.83333 5.25H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
-                    <path d="M9.33333 7.58331H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
-                    <path d="M9.33333 9.91669H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
-                  </svg>
-                  <span class="quote-marker__source" id="reader-quote-source">Kitobda: Unit 14, B bo‘lim · s. 28</span>
-                </div>
-
-                <div class="quote-marker__lines">
-                  <div class="quote-marker__line-group">
-                    <span class="quote-marker__highlight" aria-hidden="true"></span>
-                    <span class="quote-marker__text" id="reader-quote-line1">When we got home last night, we found</span>
-                  </div>
-                  <div class="quote-marker__line-group">
-                    <span class="quote-marker__highlight" aria-hidden="true"></span>
-                    <span class="quote-marker__text" id="reader-quote-line2">that somebody had broken into the flat.</span>
-                  </div>
-                </div>
-              </div>
-
-              <button type="button" class="unit-reader-card__cta" id="btn-practice-unit">
-                Ushbu mavzu bo‘yicha mashq qilish →
+                <span id="kitob-upload-btn-label">PDF yuklash</span>
               </button>
+            </div>
+
+            <!-- Empty state for Kitob tab before upload -->
+            <div class="empty-onboarding-card" id="empty-kitob-card">
+              <h3 class="empty-onboarding-card__title">Hali darslik yuklanmagan</h3>
+              <p class="empty-onboarding-card__desc">
+                PDF kitob yuklangandan so‘ng, AI ajratib bergan asosiy mavzular, qoidalar va sariq markerli muhim jumlalar shu yerda ochiladi.
+              </p>
+              <button type="button" class="empty-onboarding-card__btn" id="btn-upload-from-kitob-card">
+                PDF kitob yuklash
+              </button>
+            </div>
+
+            <!-- Active Textbook Content (Shown once PDF is analyzed) -->
+            <div class="kitob-active-wrap" id="kitob-active-wrap" hidden>
+              <!-- Active Textbook Card -->
+              <div class="textbook-card">
+                <div class="textbook-card__top">
+                  <div class="textbook-cover" aria-hidden="true">
+                    <span class="textbook-cover__spine"></span>
+                  </div>
+                  <div class="textbook-info">
+                    <h3 class="textbook-info__title" id="active-book-title">—</h3>
+                    <p class="textbook-info__author" id="active-book-author">—</p>
+                  </div>
+                </div>
+
+                <div class="textbook-card__progress-meta">
+                  <span id="book-unit-counter">1-bo‘lim</span>
+                  <span id="book-progress-pct">0%</span>
+                </div>
+                <div class="textbook-card__track" aria-hidden="true">
+                  <div class="textbook-card__fill" id="book-progress-fill" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <!-- Current Unit Reading Excerpt -->
+              <div class="section-kitob__subhead">
+                <h3 class="section-title">Bugungi mavzu</h3>
+                <div class="unit-nav-controls">
+                  <button type="button" class="unit-nav-btn" id="btn-prev-unit" aria-label="Oldingi mavzu">←</button>
+                  <span class="section-meta" id="reader-unit-meta">1-mavzu</span>
+                  <button type="button" class="unit-nav-btn" id="btn-next-unit" aria-label="Keyingi mavzu">→</button>
+                </div>
+              </div>
+
+              <div class="unit-reader-card">
+                <div class="unit-reader-card__badge-row">
+                  <span class="unit-reader-card__unit" id="reader-unit-badge">1-mavzu</span>
+                  <span class="unit-reader-card__page" id="reader-unit-page">s. 1</span>
+                </div>
+                <h4 class="unit-reader-card__heading" id="reader-unit-heading">—</h4>
+                <p class="unit-reader-card__desc" id="reader-unit-desc">—</p>
+
+                <div class="quote-marker quote-marker--in-kitob">
+                  <div class="quote-marker__head">
+                    <svg class="quote-marker__icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <path d="M8.16667 1.16669H3.5C3.19058 1.16669 2.89383 1.2896 2.67504 1.50839C2.45625 1.72719 2.33333 2.02393 2.33333 2.33335V11.6667C2.33333 11.9761 2.45625 12.2729 2.67504 12.4917C2.89383 12.7104 3.19058 12.8334 3.5 12.8334H10.5C10.8094 12.8334 11.1062 12.7104 11.325 12.4917C11.5438 12.2729 11.6667 11.9761 11.6667 11.6667V4.66669L8.16667 1.16669Z" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M8.16667 1.16669V4.66669H11.6667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M5.83333 5.25H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
+                      <path d="M9.33333 7.58331H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
+                      <path d="M9.33333 9.91669H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
+                    </svg>
+                    <span class="quote-marker__source" id="reader-quote-source">Kitobdan iqtibos</span>
+                  </div>
+
+                  <div class="quote-marker__lines">
+                    <div class="quote-marker__line-group">
+                      <span class="quote-marker__highlight" aria-hidden="true"></span>
+                      <span class="quote-marker__text" id="reader-quote-line1">—</span>
+                    </div>
+                    <div class="quote-marker__line-group">
+                      <span class="quote-marker__highlight" aria-hidden="true"></span>
+                      <span class="quote-marker__text" id="reader-quote-line2">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" class="unit-reader-card__cta" id="btn-practice-unit">
+                  Ushbu mavzu bo‘yicha mashq qilish →
+                </button>
+              </div>
             </div>
           </section>
         </div>
@@ -357,11 +332,22 @@
           <section class="section-repetitor" aria-label="Repetitor tahlili">
             <div class="section-repetitor__top">
               <h2 class="section-title">Repetitor</h2>
-              <button type="button" class="repetitor-next-btn" id="btn-next-exercise">Keyingi mashq →</button>
+              <button type="button" class="repetitor-next-btn" id="btn-next-exercise" hidden>Keyingi mashq →</button>
+            </div>
+
+            <!-- Empty state for Repetitor before PDF upload -->
+            <div class="empty-onboarding-card" id="empty-repetitor-card">
+              <h3 class="empty-onboarding-card__title">AI Repetitor tayyor</h3>
+              <p class="empty-onboarding-card__desc">
+                Avval PDF darslik yuklang — AI kitobingizdagi mavzular asosida amaliy mashqlar tuzadi va yozgan javoblaringizni jonli tekshiradi.
+              </p>
+              <button type="button" class="empty-onboarding-card__btn" id="btn-upload-from-rep">
+                PDF darslik yuklash
+              </button>
             </div>
 
             <!-- repetitor-card -->
-            <div class="repetitor-card">
+            <div class="repetitor-card" id="repetitor-active-card" hidden>
               <div class="repetitor-body">
                 <!-- repetitor-header -->
                 <div class="repetitor-header">
@@ -371,31 +357,27 @@
                       <path d="M16 4L7.75 16L4 10.5455" stroke-width="1.13" stroke-linecap="round" stroke="white"/>
                     </svg>
                   </span>
-                  <span class="repetitor-header__label" id="rep-exercise-label">14.2-mashq, 4-gap (1 / 4)</span>
+                  <span class="repetitor-header__label" id="rep-exercise-label">1-mashq</span>
                 </div>
 
                 <!-- Student sentence -->
-                <p class="repetitor-sentence" id="rep-student-sentence">
-                  When we got home last night, we found that somebody broke into the flat.
-                </p>
+                <p class="repetitor-sentence" id="rep-student-sentence">—</p>
 
                 <!-- correction-row -->
                 <div class="correction-row">
-                  <span class="correction-row__context" id="rep-corr-context">somebody</span>
-                  <span class="correction-row__wrong" id="rep-corr-wrong">broke</span>
+                  <span class="correction-row__context" id="rep-corr-context">—</span>
+                  <span class="correction-row__wrong" id="rep-corr-wrong">—</span>
                   <span class="correction-row__arrow" aria-hidden="true">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                       <path d="M8 3.33276L12.6672 7.99996L8 12.6672" stroke-linecap="round" stroke="#6B7E82"/>
                       <path d="M3.33276 8H12.6672" stroke-linecap="round" stroke="#6B7E82"/>
                     </svg>
                   </span>
-                  <span class="correction-row__right" id="rep-corr-right">had broken</span>
+                  <span class="correction-row__right" id="rep-corr-right">—</span>
                 </div>
 
                 <!-- Uzbek explanation -->
-                <p class="repetitor-explanation" id="rep-explanation">
-                  Uyga kelishingizdan oldin kimdir kvartiraga kirib bo‘lgan edi. O‘tgan zamondagi voqeadan oldinroq tugagan ish uchun Past Perfect ishlatiladi: had + fe’lning 3-shakli.
-                </p>
+                <p class="repetitor-explanation" id="rep-explanation">—</p>
 
                 <!-- quote-marker -->
                 <div class="quote-marker">
@@ -407,27 +389,25 @@
                       <path d="M9.33333 7.58331H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
                       <path d="M9.33333 9.91669H4.66667" stroke="#6B7E82" stroke-width="0.875" stroke-linecap="round"/>
                     </svg>
-                    <span class="quote-marker__source" id="rep-quote-source">Kitobda: Unit 14, B bo‘lim · s. 28</span>
+                    <span class="quote-marker__source" id="rep-quote-source">Kitobdan iqtibos</span>
                   </div>
 
                   <div class="quote-marker__lines">
                     <div class="quote-marker__line-group">
                       <span class="quote-marker__highlight" aria-hidden="true"></span>
-                      <span class="quote-marker__text" id="rep-quote-line1">When we got home last night, we found</span>
+                      <span class="quote-marker__text" id="rep-quote-line1">—</span>
                     </div>
                     <div class="quote-marker__line-group">
                       <span class="quote-marker__highlight" aria-hidden="true"></span>
-                      <span class="quote-marker__text" id="rep-quote-line2">that somebody had broken into the flat.</span>
+                      <span class="quote-marker__text" id="rep-quote-line2">—</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- practice -->
                 <div class="practice-box">
-                  <span class="practice-box__label" id="practice-label">Endi o‘zingiz tarjima qiling</span>
-                  <p class="practice-box__prompt" id="practice-prompt">
-                    Men vokzalga yetib kelganimda, poyezd allaqachon ketib bo‘lgan edi.
-                  </p>
+                  <span class="practice-box__label" id="practice-label">Endi o‘zingiz yozib ko‘ring</span>
+                  <p class="practice-box__prompt" id="practice-prompt">—</p>
                 </div>
               </div>
 
@@ -473,7 +453,7 @@
           <section class="section-review" aria-label="Bugun takrorlanadi">
             <div class="section-review__header">
               <h2 class="section-title">Bugun takrorlanadi</h2>
-              <button type="button" class="section-review__start" id="btn-review-start">
+              <button type="button" class="section-review__start" id="btn-review-start" hidden>
                 <span id="review-start-label">Boshlash</span>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M3.33276 8H12.6672" stroke="#0E7C86" stroke-linecap="round"/>
@@ -482,51 +462,31 @@
               </button>
             </div>
 
-            <!-- review-card list -->
-            <div class="review-card" id="review-list-card">
-              <div class="review-item" data-review-id="1">
-                <span class="review-item__badge">3-kun</span>
-                <div class="review-item__content">
-                  <span class="review-item__wrong">I am knowing</span>
-                  <span class="review-item__right">I know the answer now</span>
-                </div>
-                <span class="review-item__meta">Unit 4 · s. 8</span>
-              </div>
-
-              <div class="review-divider" role="separator"></div>
-
-              <div class="review-item" data-review-id="2">
-                <span class="review-item__badge">7-kun</span>
-                <div class="review-item__content">
-                  <span class="review-item__wrong">has gone</span>
-                  <span class="review-item__right">She went to Paris last year</span>
-                </div>
-                <span class="review-item__meta">Unit 7 · s. 14</span>
-              </div>
-
-              <div class="review-divider" role="separator"></div>
-
-              <div class="review-item" data-review-id="3">
-                <span class="review-item__badge">1-kun</span>
-                <div class="review-item__content">
-                  <span class="review-item__wrong">somebody broke</span>
-                  <span class="review-item__right">somebody had broken into</span>
-                </div>
-                <span class="review-item__meta">Unit 14 · s. 28</span>
-              </div>
+            <!-- Empty state for Takrorlash before PDF upload -->
+            <div class="empty-onboarding-card" id="empty-review-card">
+              <h3 class="empty-onboarding-card__title">Takrorlash ro‘yxati bo‘sh</h3>
+              <p class="empty-onboarding-card__desc">
+                PDF darslik yuklaganingizda va Repetitor mashqlarida xato qilganingizda, eslab qolish kerak bo‘lgan qoidalar avtomatik shu yerga tushadi.
+              </p>
+              <button type="button" class="empty-onboarding-card__btn" id="btn-upload-from-rev">
+                PDF darslik yuklash
+              </button>
             </div>
+
+            <!-- Dynamic review-card list -->
+            <div class="review-card" id="review-list-card" hidden></div>
 
             <!-- Interactive Flashcard Quiz Box (Active during review session) -->
             <div class="flashcard-session" id="flashcard-session" hidden>
               <div class="flashcard-session__top">
-                <span class="unit-reader-card__unit" id="fc-badge">3-kun · Unit 4</span>
-                <span class="section-meta" id="fc-counter">1 / 3</span>
+                <span class="unit-reader-card__unit" id="fc-badge">1-kun</span>
+                <span class="section-meta" id="fc-counter">1 / 1</span>
               </div>
               <p class="flashcard-session__prompt">Xato variantni to‘g‘ri jumla bilan eslang:</p>
-              <div class="flashcard-session__wrong" id="fc-wrong">I am knowing</div>
+              <div class="flashcard-session__wrong" id="fc-wrong">—</div>
               <div class="flashcard-session__answer" id="fc-answer" hidden>
-                <div class="flashcard-session__right" id="fc-right">I know the answer now</div>
-                <p class="flashcard-session__rule" id="fc-rule">State verbs (know, like, understand) Continuous zamonda ishlatilmaydi.</p>
+                <div class="flashcard-session__right" id="fc-right">—</div>
+                <p class="flashcard-session__rule" id="fc-rule">—</p>
               </div>
               <div class="flashcard-session__actions">
                 <button type="button" class="fc-btn fc-btn--reveal" id="btn-fc-reveal">Javobni ko‘rsatish</button>
@@ -627,7 +587,7 @@
         </button>
       </nav>
 
-      <!-- User Profile & Logout Sheet -->
+      <!-- User Profile, AI Key & Logout Sheet -->
       <div class="sheet-backdrop" id="profile-sheet" hidden>
         <div class="sheet-modal" role="dialog" aria-modal="true" aria-labelledby="profile-sheet-name">
           <div class="sheet-modal__head">
@@ -635,24 +595,51 @@
               <div class="profile-summary__avatar" id="profile-sheet-avatar">U</div>
               <div>
                 <h3 class="profile-summary__name" id="profile-sheet-name">Foydalanuvchi</h3>
-                <p class="profile-summary__email" id="profile-sheet-email">user@gmail.com</p>
+                <p class="profile-summary__email" id="profile-sheet-email">@foydalanuvchi</p>
               </div>
             </div>
             <button type="button" class="sheet-modal__close" id="btn-close-profile-sheet" aria-label="Yopish">✕</button>
           </div>
+
           <div class="profile-stats-row">
             <div class="profile-stat-box">
-              <span class="profile-stat-box__val" id="profile-stat-pct">94%</span>
-              <span class="profile-stat-box__lbl">Doimiylik</span>
+              <span class="profile-stat-box__val" id="profile-stat-pct">0%</span>
+              <span class="profile-stat-box__lbl">Bugungi reja</span>
             </div>
             <div class="profile-stat-box">
-              <span class="profile-stat-box__val" id="profile-stat-days">16 kun</span>
+              <span class="profile-stat-box__val" id="profile-stat-days">1 kun</span>
               <span class="profile-stat-box__lbl">Faol kunlar</span>
             </div>
           </div>
-          <button type="button" class="profile-logout-btn" id="btn-logout">
-            Hisobdan chiqish
-          </button>
+
+          <!-- Gemini API Key Setting Box -->
+          <div class="profile-ai-box">
+            <label class="sheet-field__label" for="gemini-api-key-input">
+              Gemini AI API Kaliti (ixtiyoriy — Google AI Studio)
+            </label>
+            <div class="profile-ai-box__row">
+              <input
+                type="password"
+                id="gemini-api-key-input"
+                class="sheet-field__input"
+                placeholder="AIzaSy..."
+                autocomplete="off"
+              />
+              <button type="button" class="profile-ai-box__save" id="btn-save-api-key">Saqlash</button>
+            </div>
+            <p class="profile-ai-box__hint" id="api-key-status-hint">
+              Kalit kiritilsa, PDF tahlili va Repetitor Gemini 3.8 Flash orqali ishlaydi.
+            </p>
+          </div>
+
+          <div class="profile-actions-col">
+            <button type="button" class="profile-reset-btn" id="btn-reset-book">
+              Yangi PDF darslik yuklash
+            </button>
+            <button type="button" class="profile-logout-btn" id="btn-logout">
+              Hisobdan chiqish
+            </button>
+          </div>
         </div>
       </div>
 
@@ -670,7 +657,7 @@
                 type="text"
                 id="new-task-title"
                 class="sheet-field__input"
-                placeholder="Masalan: Unit 15 qoidasini o‘qish"
+                placeholder="Masalan: 2-bo‘lim qoidasini o‘qish"
                 required
                 enterkeyhint="next"
               />
@@ -681,7 +668,7 @@
                 type="text"
                 id="new-task-sub"
                 class="sheet-field__input"
-                placeholder="Masalan: 15 daq · s. 30"
+                placeholder="Masalan: 15 daq · s. 12"
                 enterkeyhint="done"
               />
             </label>
@@ -692,6 +679,7 @@
     </section>
   </main>
 
-  <script type="module" src="/src/main.js?v=10"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"></script>
+  <script type="module" src="/src/main.js?v=12"></script>
 </body>
 </html>

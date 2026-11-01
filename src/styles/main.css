@@ -1567,8 +1567,132 @@ body[data-view-mode="app"] #screen-login {
 .sheet-backdrop[hidden],
 .flashcard-session[hidden],
 .review-card[hidden],
-.tab-panel[hidden] {
+.tab-panel[hidden],
+.plan-card[hidden],
+.empty-onboarding-card[hidden],
+.kitob-active-wrap[hidden],
+.repetitor-card[hidden],
+.ai-loading-box[hidden],
+.plan-add-btn[hidden],
+.repetitor-next-btn[hidden],
+.section-review__start[hidden] {
   display: none !important;
+}
+
+/* PDF Onboarding Empty State & AI Loading Progress Box */
+.empty-onboarding-card {
+  width: 100%;
+  padding: 22px 18px;
+  border-radius: 16px;
+  background-color: var(--color-surface);
+  border: 1px dashed rgba(14, 124, 134, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.empty-onboarding-card__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background-color: var(--color-pill-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.empty-onboarding-card__title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 22px;
+  color: var(--color-ink);
+}
+
+.empty-onboarding-card__desc {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--color-text-secondary);
+  max-width: 34ch;
+}
+
+.empty-onboarding-card__btn {
+  margin-top: 6px;
+  width: 100%;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background-color: var(--color-teal);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 120ms var(--ease-out), background-color 150ms var(--ease-out);
+}
+
+.empty-onboarding-card__btn:active {
+  transform: scale(0.985);
+}
+
+.ai-loading-box {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background-color: var(--color-bg-app);
+  border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ai-loading-box__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ai-loading-box__status {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-teal-deep);
+  text-align: left;
+}
+
+.ai-loading-box__pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-teal);
+}
+
+.ai-loading-box__track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background-color: var(--color-pill-bg);
+  overflow: hidden;
+}
+
+.ai-loading-box__fill {
+  height: 100%;
+  border-radius: 3px;
+  background-color: var(--color-teal);
+  transition: width 260ms var(--ease-out);
+}
+
+.kitob-active-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .sheet-modal {
@@ -1733,6 +1857,63 @@ body[data-view-mode="app"] #screen-login {
 .profile-stat-box__lbl {
   font-size: 12px;
   color: var(--color-text-muted);
+}
+
+.profile-ai-box {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--color-bg-app);
+  border: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-ai-box__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-ai-box__row .sheet-field__input {
+  height: 40px;
+  background: #ffffff;
+}
+
+.profile-ai-box__save {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: var(--color-teal);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.profile-ai-box__hint {
+  font-size: 11.5px;
+  line-height: 16px;
+  color: var(--color-text-muted);
+}
+
+.profile-actions-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-reset-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-pill-bg);
+  color: var(--color-teal-deep);
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profile-logout-btn {

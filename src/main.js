@@ -1,19 +1,21 @@
 /**
- * Discipline Learn — Production Mobile Web App Controller
- * - Login-first authentication flow with persisted Google user profile
- * - 100% responsive mobile viewport (no fixed 390×844 scaling)
- * - Interactive persisted state for Bugun (Reja), Kitob, Repetitor, and Takrorlash
+ * Discipline Learn — Real PDF-First AI Study Plan & Tutor Controller
+ * - Per-user isolated workspace (`dl_workspace_v2_<username>`)
+ * - Clean empty state on first login (no hardcoded fake books/tasks)
+ * - Real client-side PDF text extraction via PDF.js
+ * - Gemini 3.8 Flash integration via `/api/ai` + intelligent PDF content parser fallback
  */
 
 const STORAGE_KEYS = {
-  USER: "dl_auth_user_v1",
-  ACCOUNTS: "dl_accounts_v1",
-  TASKS: "dl_daily_tasks_v1",
-  BOOK: "dl_active_book_v1",
-  UNIT_INDEX: "dl_unit_idx_v1",
-  REP_INDEX: "dl_rep_idx_v1",
-  REVIEWS: "dl_reviews_v1",
+  USER: "dl_auth_user_v2",
+  ACCOUNTS: "dl_accounts_v2",
+  API_KEY: "dl_gemini_api_key_v1",
 };
+
+if (window.pdfjsLib) {
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
 
 const body = document.body;
 const metaThemeColor = document.getElementById("meta-theme-color");
@@ -34,7 +36,26 @@ const profileSheetName = document.getElementById("profile-sheet-name");
 const profileSheetEmail = document.getElementById("profile-sheet-email");
 const profileStatPct = document.getElementById("profile-stat-pct");
 const profileStatDays = document.getElementById("profile-stat-days");
+const geminiApiKeyInput = document.getElementById("gemini-api-key-input");
+const saveApiKeyBtn = document.getElementById("btn-save-api-key");
+const apiKeyStatusHint = document.getElementById("api-key-status-hint");
+const resetBookBtn = document.getElementById("btn-reset-book");
 const logoutBtn = document.getElementById("btn-logout");
+
+// Global PDF Upload Input & Trigger Buttons
+const pdfUploadInput = document.getElementById("pdf-upload-input");
+const uploadFromPlanBtn = document.getElementById("btn-upload-from-plan");
+const uploadFromKitobBtn = document.getElementById("btn-upload-from-kitob");
+const uploadFromKitobCardBtn = document.getElementById("btn-upload-from-kitob-card");
+const uploadFromRepBtn = document.getElementById("btn-upload-from-rep");
+const uploadFromRevBtn = document.getElementById("btn-upload-from-rev");
+const kitobUploadBtnLabel = document.getElementById("kitob-upload-btn-label");
+
+// AI Loading Progress Box
+const aiLoadingBox = document.getElementById("ai-loading-box");
+const aiLoadingStatus = document.getElementById("ai-loading-status");
+const aiLoadingPct = document.getElementById("ai-loading-pct");
+const aiLoadingFill = document.getElementById("ai-loading-fill");
 
 // Navigation DOM
 const bottomNavTabs = document.querySelectorAll(".bottom-nav__tab[data-tab]");
@@ -43,6 +64,8 @@ const tabPanels = document.querySelectorAll(".tab-panel[data-tab-panel]");
 // Tab 1: Bugun DOM
 const progressDateEl = document.getElementById("progress-date");
 const progressValueEl = document.getElementById("progress-value");
+const planUnitMetaEl = document.getElementById("plan-unit-meta");
+const emptyPlanCard = document.getElementById("empty-plan-card");
 const planCardEl = document.getElementById("plan-card");
 const addTaskBtn = document.getElementById("btn-add-task");
 const addTaskSheet = document.getElementById("add-task-sheet");
@@ -52,7 +75,8 @@ const newTaskTitleInput = document.getElementById("new-task-title");
 const newTaskSubInput = document.getElementById("new-task-sub");
 
 // Tab 2: Kitob DOM
-const pdfUploadInput = document.getElementById("pdf-upload-input");
+const emptyKitobCard = document.getElementById("empty-kitob-card");
+const kitobActiveWrap = document.getElementById("kitob-active-wrap");
 const activeBookTitleEl = document.getElementById("active-book-title");
 const activeBookAuthorEl = document.getElementById("active-book-author");
 const bookUnitCounterEl = document.getElementById("book-unit-counter");
@@ -71,6 +95,8 @@ const readerQuoteLine2El = document.getElementById("reader-quote-line2");
 const practiceUnitBtn = document.getElementById("btn-practice-unit");
 
 // Tab 3: Repetitor DOM
+const emptyRepetitorCard = document.getElementById("empty-repetitor-card");
+const repetitorActiveCard = document.getElementById("repetitor-active-card");
 const nextExerciseBtn = document.getElementById("btn-next-exercise");
 const repExerciseLabelEl = document.getElementById("rep-exercise-label");
 const repStudentSentenceEl = document.getElementById("rep-student-sentence");
@@ -85,9 +111,11 @@ const practiceLabelEl = document.getElementById("practice-label");
 const practicePromptEl = document.getElementById("practice-prompt");
 const repetitorForm = document.getElementById("repetitor-form");
 const composerInput = document.getElementById("composer-input");
+const submitAnswerBtn = document.getElementById("btn-submit");
 const micBtn = document.getElementById("btn-mic");
 
 // Tab 4: Takrorlash DOM
+const emptyReviewCard = document.getElementById("empty-review-card");
 const reviewStartBtn = document.getElementById("btn-review-start");
 const reviewStartLabelEl = document.getElementById("review-start-label");
 const reviewListCardEl = document.getElementById("review-list-card");
@@ -123,13 +151,58 @@ const WAVE_MARKUP = `
 `;
 
 /**
+ * Current User & Workspace State
+ */
+let currentUser = null;
+let workspace = createEmptyWorkspace();
+let currentUnitIdx = 0;
+let currentRepIdx = 0;
+let fcIndex = 0;
+let isReviewSessionOpen = false;
+
+function createEmptyWorkspace() {
+  return {
+    hasBook: false,
+    bookTitle: "",
+    authorMeta: "",
+    totalUnits: 0,
+    planMeta: "Darslik yuklanmagan",
+    tasks: [],
+    units: [],
+    exercises: [],
+    flashcards: [],
+  };
+}
+
+function getWorkspaceStorageKey(username) {
+  const key = String(username || "guest").toLowerCase().trim();
+  return `dl_workspace_v2_${key}`;
+}
+
+function loadUserWorkspace(username) {
+  try {
+    const raw = localStorage.getItem(getWorkspaceStorageKey(username));
+    if (!raw) return createEmptyWorkspace();
+    const parsed = JSON.parse(raw);
+    return { ...createEmptyWorkspace(), ...parsed };
+  } catch {
+    return createEmptyWorkspace();
+  }
+}
+
+function saveUserWorkspace() {
+  if (!currentUser?.username) return;
+  localStorage.setItem(getWorkspaceStorageKey(currentUser.username), JSON.stringify(workspace));
+}
+
+/**
  * 1. Format Current Uzbek Date
  */
 function formatUzbekDate() {
   const days = ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
   const months = [
     "yanvar", "fevral", "mart", "aprel", "may", "iyun",
-    "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"
+    "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr",
   ];
   const now = new Date();
   return `${days[now.getDay()]}, ${now.getDate()}-${months[now.getMonth()]}`;
@@ -155,36 +228,54 @@ function setViewMode(mode) {
   }
 }
 
+function computePlanCompletionPct() {
+  if (!workspace.hasBook || !workspace.tasks.length) return 0;
+  const doneCount = workspace.tasks.filter((t) => t.done).length;
+  return Math.round((doneCount / workspace.tasks.length) * 100);
+}
+
+function updateProgressUI() {
+  const pct = computePlanCompletionPct();
+  if (progressValueEl) progressValueEl.textContent = `${pct}%`;
+  if (profileStatPct) profileStatPct.textContent = `${pct}%`;
+}
+
 function applyUserToUI(user) {
-  const initials = user.initials || getInitials(user.username || user.name);
-  const displayName = user.username || user.name || "Foydalanuvchi";
+  const initials = user.initials || getInitials(user.username);
+  const displayName = user.username || "Foydalanuvchi";
   if (avatarBtn) {
     avatarBtn.setAttribute("aria-label", `${displayName} profili`);
     avatarBtn.innerHTML = `<span id="avatar-initials">${initials}</span>`;
   }
-  if (profileSheetAvatar) {
-    profileSheetAvatar.textContent = initials;
-  }
+  if (profileSheetAvatar) profileSheetAvatar.textContent = initials;
   if (profileSheetName) profileSheetName.textContent = displayName;
   if (profileSheetEmail) profileSheetEmail.textContent = `@${displayName.toLowerCase()}`;
-  const consistency = user.consistency || 94;
   const activeDays = user.activeDays || 1;
-  if (progressValueEl) progressValueEl.textContent = `${consistency}%`;
-  if (profileStatPct) profileStatPct.textContent = `${consistency}%`;
   if (profileStatDays) profileStatDays.textContent = `${activeDays} kun`;
+
+  workspace = loadUserWorkspace(displayName);
+  currentUnitIdx = 0;
+  currentRepIdx = 0;
+  fcIndex = 0;
+  isReviewSessionOpen = false;
+  renderAllTabs();
 }
 
 function loadUserSession() {
   try {
+    const savedKey = localStorage.getItem(STORAGE_KEYS.API_KEY) || "";
+    if (geminiApiKeyInput && savedKey) {
+      geminiApiKeyInput.value = savedKey;
+    }
     const raw = localStorage.getItem(STORAGE_KEYS.USER);
     if (!raw) {
       setViewMode("login");
       return null;
     }
-    const user = JSON.parse(raw);
-    applyUserToUI(user);
+    currentUser = JSON.parse(raw);
+    applyUserToUI(currentUser);
     setViewMode("app");
-    return user;
+    return currentUser;
   } catch {
     setViewMode("login");
     return null;
@@ -255,7 +346,6 @@ if (loginForm) {
       username: existing ? existing.username : username,
       password,
       initials: getInitials(username),
-      consistency: existing?.consistency || 94,
       activeDays,
       lastLogin: today,
     };
@@ -263,24 +353,26 @@ if (loginForm) {
     accounts[key] = userRecord;
     localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
 
-    const sessionUser = {
+    currentUser = {
       username: userRecord.username,
       initials: userRecord.initials,
-      consistency: userRecord.consistency,
       activeDays: userRecord.activeDays,
       lastLogin: today,
     };
 
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(sessionUser));
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
     showLoginError("");
     if (loginPasswordInput) loginPasswordInput.value = "";
-    applyUserToUI(sessionUser);
+    applyUserToUI(currentUser);
     setViewMode("app");
+    setActiveDockTab("bugun");
   });
 }
 
 if (avatarBtn && profileSheet) {
   avatarBtn.addEventListener("click", () => {
+    const savedKey = localStorage.getItem(STORAGE_KEYS.API_KEY) || "";
+    if (geminiApiKeyInput) geminiApiKeyInput.value = savedKey;
     profileSheet.hidden = false;
   });
 }
@@ -291,9 +383,40 @@ if (closeProfileSheetBtn && profileSheet) {
   });
 }
 
+if (saveApiKeyBtn && geminiApiKeyInput) {
+  saveApiKeyBtn.addEventListener("click", () => {
+    const val = geminiApiKeyInput.value.trim();
+    if (val) {
+      localStorage.setItem(STORAGE_KEYS.API_KEY, val);
+      if (apiKeyStatusHint) {
+        apiKeyStatusHint.textContent = "✓ Gemini API kaliti saqlandi! Endi PDF yuklab sinab ko‘ring.";
+        apiKeyStatusHint.style.color = "#16a34a";
+      }
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.API_KEY);
+      if (apiKeyStatusHint) {
+        apiKeyStatusHint.textContent = "API kalit tozalandi (server kaliti yoki lokal tahlil ishlaydi).";
+        apiKeyStatusHint.style.color = "";
+      }
+    }
+  });
+}
+
+if (resetBookBtn) {
+  resetBookBtn.addEventListener("click", () => {
+    workspace = createEmptyWorkspace();
+    saveUserWorkspace();
+    renderAllTabs();
+    if (profileSheet) profileSheet.hidden = true;
+    setActiveDockTab("bugun");
+    triggerPdfFilePicker();
+  });
+}
+
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem(STORAGE_KEYS.USER);
+    currentUser = null;
     if (profileSheet) profileSheet.hidden = true;
     setViewMode("login");
   });
@@ -335,37 +458,36 @@ bottomNavTabs.forEach((tab) => {
 });
 
 /**
- * 4. Tab 1: Daily Plan (Reja) with Persisted State & Liquid Wave Sync
+ * 4. Render All 4 Tabs Based on `workspace.hasBook`
  */
-const DEFAULT_TASKS = [
-  { id: 1, title: "Unit 14 qoidasini o‘qish: Past Perfect", sub: "12 daq · s. 28", done: true },
-  { id: 2, title: "14.1-mashq, 8 ta gap", sub: "8 / 8 to‘g‘ri · s. 29", done: true },
-  { id: 3, title: "14.2-mashq, 6 ta gap", sub: "4 / 6 to‘g‘ri · 2 ta xato takrorlashga qo‘shildi", done: true },
-  { id: 4, title: "2 ta xatoni repetitor bilan ko‘rib chiqish", sub: "5 daq · s. 28", done: false },
-  { id: 5, title: "Past Perfect bilan o‘zingiz 3 ta gap yozing", sub: "10 daq · yozma", done: false },
-];
-
-function loadTasks() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.TASKS);
-    return raw ? JSON.parse(raw) : DEFAULT_TASKS;
-  } catch {
-    return DEFAULT_TASKS;
-  }
+function renderAllTabs() {
+  updateProgressUI();
+  renderTasks();
+  renderKitobTab();
+  renderRepetitorTab();
+  renderReviewTab();
 }
-
-function saveTasks(tasks) {
-  localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
-}
-
-let dailyTasks = loadTasks();
 
 function renderTasks() {
-  if (!planCardEl) return;
+  if (!planCardEl || !emptyPlanCard) return;
+
+  if (!workspace.hasBook || !workspace.tasks.length) {
+    emptyPlanCard.hidden = false;
+    planCardEl.hidden = true;
+    if (addTaskBtn) addTaskBtn.hidden = true;
+    if (planUnitMetaEl) planUnitMetaEl.textContent = "Darslik yuklanmagan";
+    return;
+  }
+
+  emptyPlanCard.hidden = true;
+  planCardEl.hidden = false;
+  if (addTaskBtn) addTaskBtn.hidden = false;
+  if (planUnitMetaEl) planUnitMetaEl.textContent = workspace.planMeta || "1-bo‘lim · s. 1";
+
   let foundCurrent = false;
   planCardEl.innerHTML = "";
 
-  dailyTasks.forEach((task) => {
+  workspace.tasks.forEach((task) => {
     const isCurrent = !task.done && !foundCurrent;
     if (isCurrent) foundCurrent = true;
     const stateClass = task.done
@@ -382,27 +504,32 @@ function renderTasks() {
 
     btn.innerHTML = `
       ${isCurrent ? WAVE_MARKUP : ""}
-      <span class="task-row__check ${task.done ? "task-row__check--done" : isCurrent ? "task-row__check--current" : "task-row__check--future"}" aria-hidden="true">
+      <span class="task-row__check ${
+        task.done
+          ? "task-row__check--done"
+          : isCurrent
+          ? "task-row__check--current"
+          : "task-row__check--future"
+      }" aria-hidden="true">
         ${task.done ? CHECK_SVG_DONE : ""}
       </span>
       <span class="task-row__body">
-        <span class="task-row__title">${task.title}</span>
-        <span class="task-row__sub">${task.sub}</span>
+        <span class="task-row__title">${escapeHtml(task.title)}</span>
+        <span class="task-row__sub">${escapeHtml(task.sub)}</span>
       </span>
       <span class="task-row__badge">Hozir</span>
     `;
 
     btn.addEventListener("click", () => {
       task.done = !task.done;
-      saveTasks(dailyTasks);
+      saveUserWorkspace();
+      updateProgressUI();
       renderTasks();
     });
 
     planCardEl.appendChild(btn);
   });
 }
-
-renderTasks();
 
 if (addTaskBtn && addTaskSheet) {
   addTaskBtn.addEventListener("click", () => {
@@ -423,13 +550,14 @@ if (addTaskForm) {
     const title = newTaskTitleInput.value.trim();
     const sub = newTaskSubInput.value.trim() || "10 daq · mustaqil";
     if (!title) return;
-    dailyTasks.push({
+    workspace.tasks.push({
       id: Date.now(),
       title,
       sub,
       done: false,
     });
-    saveTasks(dailyTasks);
+    saveUserWorkspace();
+    updateProgressUI();
     renderTasks();
     newTaskTitleInput.value = "";
     newTaskSubInput.value = "";
@@ -438,196 +566,87 @@ if (addTaskForm) {
 }
 
 /**
- * 5. Tab 2: Kitob — Interactive Multi-Unit Reader & PDF Upload
+ * 5. Tab 2: Kitob Renderer
  */
-const BOOK_UNITS = [
-  {
-    unitNum: 14,
-    page: "s. 28",
-    badge: "Unit 14 · B bo‘lim",
-    heading: "Past perfect (I had done)",
-    desc: "O‘tgan zamondagi biror voqeadan oldinroq sodir bo‘lib tugagan ish-harakat uchun <strong>had + past participle</strong> (<em>had gone, had seen, had broken</em>) ishlatiladi.",
-    source: "Kitobda: Unit 14, B bo‘lim · s. 28",
-    line1: "When we got home last night, we found",
-    line2: "that somebody had broken into the flat.",
-    pct: 40,
-  },
-  {
-    unitNum: 15,
-    page: "s. 30",
-    badge: "Unit 15 · A bo‘lim",
-    heading: "Past perfect continuous (I had been doing)",
-    desc: "O‘tgan zamondagi biror voqeagacha davom etib kelgan jarayon uchun <strong>had been + V-ing</strong> ishlatiladi.",
-    source: "Kitobda: Unit 15, A bo‘lim · s. 30",
-    line1: "When the boys came into the house, their",
-    line2: "clothes were dirty. They had been playing football.",
-    pct: 44,
-  },
-  {
-    unitNum: 7,
-    page: "s. 14",
-    badge: "Unit 7 · B bo‘lim",
-    heading: "Present perfect vs Past simple",
-    desc: "Aniq tugagan o‘tgan vaqt (<em>yesterday, last year, in 2020</em>) ko‘rsatilganda Present Perfect emas, faqat <strong>Past Simple</strong> ishlatiladi.",
-    source: "Kitobda: Unit 7, B bo‘lim · s. 14",
-    line1: "Do not use the present perfect (have done)",
-    line2: "together with a finished time (yesterday, last year).",
-    pct: 25,
-  },
-  {
-    unitNum: 4,
-    page: "s. 8",
-    badge: "Unit 4 · A bo‘lim",
-    heading: "State verbs (I know / I like)",
-    desc: "Holat va fikr fe’llari (<em>know, like, want, understand, remember</em>) Continuous (-ing) zamonlarida ishlatilmaydi.",
-    source: "Kitobda: Unit 4, A bo‘lim · s. 8",
-    line1: "These verbs are not normally used in",
-    line2: "continuous forms: I know the answer now.",
-    pct: 15,
-  },
-];
+function renderKitobTab() {
+  if (!workspace.hasBook || !workspace.units.length) {
+    if (emptyKitobCard) emptyKitobCard.hidden = false;
+    if (kitobActiveWrap) kitobActiveWrap.hidden = true;
+    if (kitobUploadBtnLabel) kitobUploadBtnLabel.textContent = "PDF yuklash";
+    return;
+  }
 
-let currentUnitIdx = Number(localStorage.getItem(STORAGE_KEYS.UNIT_INDEX) || 0) % BOOK_UNITS.length;
+  if (emptyKitobCard) emptyKitobCard.hidden = true;
+  if (kitobActiveWrap) kitobActiveWrap.hidden = false;
+  if (kitobUploadBtnLabel) kitobUploadBtnLabel.textContent = "Yangilash";
 
-function renderCurrentUnit() {
-  const u = BOOK_UNITS[currentUnitIdx];
+  if (activeBookTitleEl) activeBookTitleEl.textContent = workspace.bookTitle;
+  if (activeBookAuthorEl) activeBookAuthorEl.textContent = workspace.authorMeta;
+
+  const u = workspace.units[currentUnitIdx % workspace.units.length];
   if (!u) return;
+
+  const totalUnits = workspace.totalUnits || workspace.units.length;
   if (readerUnitMetaEl) readerUnitMetaEl.textContent = `Unit ${u.unitNum} · ${u.page}`;
   if (readerUnitBadgeEl) readerUnitBadgeEl.textContent = u.badge;
   if (readerUnitPageEl) readerUnitPageEl.textContent = u.page;
   if (readerUnitHeadingEl) readerUnitHeadingEl.textContent = u.heading;
-  if (readerUnitDescEl) readerUnitDescEl.innerHTML = u.desc;
+  if (readerUnitDescEl) readerUnitDescEl.textContent = u.desc;
   if (readerQuoteSourceEl) readerQuoteSourceEl.textContent = u.source;
   if (readerQuoteLine1El) readerQuoteLine1El.textContent = u.line1;
   if (readerQuoteLine2El) readerQuoteLine2El.textContent = u.line2;
-  if (bookUnitCounterEl) bookUnitCounterEl.textContent = `Unit ${u.unitNum} / 145`;
+  if (bookUnitCounterEl) bookUnitCounterEl.textContent = `Mavzu ${currentUnitIdx + 1} / ${totalUnits}`;
   if (bookProgressPctEl) bookProgressPctEl.textContent = `${u.pct}%`;
   if (bookProgressFillEl) bookProgressFillEl.style.width = `${u.pct}%`;
 }
 
-renderCurrentUnit();
-
 if (prevUnitBtn) {
   prevUnitBtn.addEventListener("click", () => {
-    currentUnitIdx = (currentUnitIdx - 1 + BOOK_UNITS.length) % BOOK_UNITS.length;
-    localStorage.setItem(STORAGE_KEYS.UNIT_INDEX, String(currentUnitIdx));
-    renderCurrentUnit();
+    if (!workspace.units.length) return;
+    currentUnitIdx = (currentUnitIdx - 1 + workspace.units.length) % workspace.units.length;
+    renderKitobTab();
   });
 }
 
 if (nextUnitBtn) {
   nextUnitBtn.addEventListener("click", () => {
-    currentUnitIdx = (currentUnitIdx + 1) % BOOK_UNITS.length;
-    localStorage.setItem(STORAGE_KEYS.UNIT_INDEX, String(currentUnitIdx));
-    renderCurrentUnit();
+    if (!workspace.units.length) return;
+    currentUnitIdx = (currentUnitIdx + 1) % workspace.units.length;
+    renderKitobTab();
   });
 }
 
 if (practiceUnitBtn) {
   practiceUnitBtn.addEventListener("click", () => {
-    currentRepIdx = currentUnitIdx % REPETITOR_EXERCISES.length;
-    renderRepetitorExercise();
+    if (workspace.exercises.length) {
+      currentRepIdx = currentUnitIdx % workspace.exercises.length;
+      renderRepetitorTab();
+    }
     setActiveDockTab("repetitor");
   });
 }
 
-if (pdfUploadInput) {
-  pdfUploadInput.addEventListener("change", (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const cleanName = file.name.replace(/\.pdf$/i, "");
-    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-    const authorMeta = `Yuklangan PDF · ${sizeMb} MB`;
-    if (activeBookTitleEl) activeBookTitleEl.textContent = cleanName;
-    if (activeBookAuthorEl) activeBookAuthorEl.textContent = authorMeta;
-    localStorage.setItem(STORAGE_KEYS.BOOK, JSON.stringify({ title: cleanName, author: authorMeta }));
-  });
-}
-
-try {
-  const savedBook = JSON.parse(localStorage.getItem(STORAGE_KEYS.BOOK) || "null");
-  if (savedBook?.title && activeBookTitleEl) activeBookTitleEl.textContent = savedBook.title;
-  if (savedBook?.author && activeBookAuthorEl) activeBookAuthorEl.textContent = savedBook.author;
-} catch {
-  // Ignore invalid storage
-}
-
 /**
- * 6. Tab 3: Repetitor — Multi-Exercise Interactive Grammar Coach
+ * 6. Tab 3: Repetitor Renderer & Live AI Evaluation
  */
-const REPETITOR_EXERCISES = [
-  {
-    label: "14.2-mashq, 4-gap (1 / 4)",
-    studentSentence: "When we got home last night, we found that somebody broke into the flat.",
-    context: "somebody",
-    wrong: "broke",
-    right: "had broken",
-    explanation:
-      "Uyga kelishingizdan oldin kimdir kvartiraga kirib bo‘lgan edi. O‘tgan zamondagi voqeadan oldinroq tugagan ish uchun Past Perfect ishlatiladi: had + fe’lning 3-shakli.",
-    source: "Kitobda: Unit 14, B bo‘lim · s. 28",
-    line1: "When we got home last night, we found",
-    line2: "that somebody had broken into the flat.",
-    prompt: "Men vokzalga yetib kelganimda, poyezd allaqachon ketib bo‘lgan edi.",
-    regex: /\bhad\s+(already\s+)?(left|gone|departed)\b/i,
-    sample: "When I arrived at the station, the train had already left.",
-    hint: "Maslahat · had + fe’lning 3-shaklini (had left) ishlating",
-  },
-  {
-    label: "15.1-mashq, 2-gap (2 / 4)",
-    studentSentence: "The ground was very wet. It rained all night.",
-    context: "It",
-    wrong: "rained",
-    right: "had been raining",
-    explanation:
-      "Yer ho‘l bo‘lishidan oldin tun bo‘yi yomg‘ir yog‘ish jarayoni davom etgan. Jarayon davomiyligi uchun Past Perfect Continuous (had been + V-ing) ishlatiladi.",
-    source: "Kitobda: Unit 15, A bo‘lim · s. 30",
-    line1: "When I looked out of the window,",
-    line2: "it had been raining.",
-    prompt: "U juda charchagan edi, chunki kun bo‘yi qattiq ishlagan edi.",
-    regex: /\bhad\s+been\s+working\b/i,
-    sample: "He was very tired because he had been working hard all day.",
-    hint: "Maslahat · had been working birikmasini ishlating",
-  },
-  {
-    label: "7.3-mashq, 5-gap (3 / 4)",
-    studentSentence: "She has gone to Paris last year with her family.",
-    context: "She",
-    wrong: "has gone",
-    right: "went",
-    explanation:
-      "Gapda 'last year' (o‘tgan yili — tugagan aniq vaqt) qatnashgani uchun Present Perfect emas, Past Simple (went) ishlatilishi shart.",
-    source: "Kitobda: Unit 7, B bo‘lim · s. 14",
-    line1: "Do not use the present perfect (have done)",
-    line2: "together with a finished time (yesterday, last year).",
-    prompt: "Men kecha ushbu kitobning 14-bo‘limini tugatdim.",
-    regex: /\b(finished|completed|read)\b/i,
-    sample: "I finished Unit 14 of this book yesterday.",
-    hint: "Maslahat · kecha (yesterday) bilan Past Simple (finished) ishlating",
-  },
-  {
-    label: "4.2-mashq, 1-gap (4 / 4)",
-    studentSentence: "Wait a moment, I am knowing the answer to this question now.",
-    context: "I",
-    wrong: "am knowing",
-    right: "know",
-    explanation:
-      "'Know' (bilmoq) harakat emas, balki holat fe’li (state verb) hisoblanadi, shuning uchun -ing olmaydi.",
-    source: "Kitobda: Unit 4, A bo‘lim · s. 8",
-    line1: "These verbs are not normally used in",
-    line2: "continuous forms: I know the answer now.",
-    prompt: "Men hozir bu grammatik qoidani juda yaxshi tushunyapman.",
-    regex: /\bI\s+(really\s+|very\s+well\s+)?understand\b/i,
-    sample: "I understand this grammar rule very well now.",
-    hint: "Maslahat · 'understand' holat fe’li bo‘lgani uchun 'I understand' deb yozing",
-  },
-];
+function renderRepetitorTab() {
+  if (!workspace.hasBook || !workspace.exercises.length) {
+    if (emptyRepetitorCard) emptyRepetitorCard.hidden = false;
+    if (repetitorActiveCard) repetitorActiveCard.hidden = true;
+    if (nextExerciseBtn) nextExerciseBtn.hidden = true;
+    return;
+  }
 
-let currentRepIdx = Number(localStorage.getItem(STORAGE_KEYS.REP_INDEX) || 0) % REPETITOR_EXERCISES.length;
+  if (emptyRepetitorCard) emptyRepetitorCard.hidden = true;
+  if (repetitorActiveCard) repetitorActiveCard.hidden = false;
+  if (nextExerciseBtn) nextExerciseBtn.hidden = false;
 
-function renderRepetitorExercise() {
-  const ex = REPETITOR_EXERCISES[currentRepIdx];
+  const ex = workspace.exercises[currentRepIdx % workspace.exercises.length];
   if (!ex) return;
-  if (repExerciseLabelEl) repExerciseLabelEl.textContent = ex.label;
+
+  if (repExerciseLabelEl) {
+    repExerciseLabelEl.textContent = `${ex.label} (${(currentRepIdx % workspace.exercises.length) + 1} / ${workspace.exercises.length})`;
+  }
   if (repStudentSentenceEl) repStudentSentenceEl.textContent = ex.studentSentence;
   if (repCorrContextEl) repCorrContextEl.textContent = ex.context;
   if (repCorrWrongEl) repCorrWrongEl.textContent = ex.wrong;
@@ -637,20 +656,18 @@ function renderRepetitorExercise() {
   if (repQuoteLine1El) repQuoteLine1El.textContent = ex.line1;
   if (repQuoteLine2El) repQuoteLine2El.textContent = ex.line2;
   if (practiceLabelEl) {
-    practiceLabelEl.textContent = "Endi o‘zingiz tarjima qiling";
+    practiceLabelEl.textContent = "Endi o‘zingiz tarjima qiling yoki yozing";
     practiceLabelEl.style.color = "";
   }
   if (practicePromptEl) practicePromptEl.textContent = ex.prompt;
   if (composerInput) composerInput.value = "";
 }
 
-renderRepetitorExercise();
-
 if (nextExerciseBtn) {
   nextExerciseBtn.addEventListener("click", () => {
-    currentRepIdx = (currentRepIdx + 1) % REPETITOR_EXERCISES.length;
-    localStorage.setItem(STORAGE_KEYS.REP_INDEX, String(currentRepIdx));
-    renderRepetitorExercise();
+    if (!workspace.exercises.length) return;
+    currentRepIdx = (currentRepIdx + 1) % workspace.exercises.length;
+    renderRepetitorTab();
   });
 }
 
@@ -671,7 +688,7 @@ if (micBtn && composerInput) {
       recognition.onend = () => micBtn.classList.remove("is-recording");
       recognition.start();
     } else {
-      const ex = REPETITOR_EXERCISES[currentRepIdx];
+      const ex = workspace.exercises[currentRepIdx % workspace.exercises.length];
       composerInput.value = ex ? ex.sample : "";
       composerInput.focus();
     }
@@ -679,67 +696,161 @@ if (micBtn && composerInput) {
 }
 
 if (repetitorForm && composerInput) {
-  repetitorForm.addEventListener("submit", (e) => {
+  repetitorForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const val = composerInput.value.trim();
-    if (!val) {
+    if (!val || !workspace.exercises.length) {
       composerInput.focus();
       return;
     }
 
-    const ex = REPETITOR_EXERCISES[currentRepIdx];
-    const isCorrect = ex ? ex.regex.test(val) : false;
+    const ex = workspace.exercises[currentRepIdx % workspace.exercises.length];
+    if (!ex) return;
 
-    if (practiceLabelEl && practicePromptEl && ex) {
-      if (isCorrect) {
-        practiceLabelEl.textContent = "Barakalla · Qoida to‘g‘ri qo‘llandi!";
-        practiceLabelEl.style.color = "#16a34a";
-        practicePromptEl.textContent = `✓ ${val}`;
-      } else {
-        practiceLabelEl.textContent = ex.hint;
-        practiceLabelEl.style.color = "#0e7c86";
-        practicePromptEl.textContent = `Namuna: ${ex.sample}`;
+    if (submitAnswerBtn) {
+      submitAnswerBtn.disabled = true;
+      submitAnswerBtn.textContent = "Tekshirilmoqda...";
+    }
+
+    let evaluatedByAi = false;
+    try {
+      const apiKey = localStorage.getItem(STORAGE_KEYS.API_KEY) || "";
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "check_answer",
+          userAnswer: val,
+          exercise: ex,
+          apiKey,
+        }),
+      });
+
+      if (res.ok) {
+        const payload = await res.json();
+        if (payload?.ok && payload.data) {
+          evaluatedByAi = true;
+          const d = payload.data;
+          if (practiceLabelEl && practicePromptEl) {
+            practiceLabelEl.textContent = d.feedbackLabel;
+            practiceLabelEl.style.color = d.isCorrect ? "#16a34a" : "#0e7c86";
+            practicePromptEl.textContent = d.feedbackText;
+          }
+          if (!d.isCorrect && d.wrongFragment && d.rightFragment) {
+            addMistakeToReview({
+              badge: "1-kun",
+              meta: ex.source.replace(/^Kitobda:\s*/i, ""),
+              wrong: d.wrongFragment,
+              right: d.rightFragment,
+              rule: d.ruleSummary || ex.explanation,
+            });
+          }
+        }
       }
+    } catch {
+      // Fallback to local keyword evaluation below
+    }
+
+    if (!evaluatedByAi) {
+      const keywords = Array.isArray(ex.keywords) && ex.keywords.length ? ex.keywords : [ex.right];
+      const lowerVal = val.toLowerCase();
+      const isCorrect = keywords.some((kw) => lowerVal.includes(String(kw).toLowerCase()));
+
+      if (practiceLabelEl && practicePromptEl) {
+        if (isCorrect) {
+          practiceLabelEl.textContent = "Barakalla · Qoida to‘g‘ri qo‘llandi!";
+          practiceLabelEl.style.color = "#16a34a";
+          practicePromptEl.textContent = `✓ ${val}`;
+        } else {
+          practiceLabelEl.textContent = ex.hint || "Maslahat · Namuna bilan solishtiring";
+          practiceLabelEl.style.color = "#0e7c86";
+          practicePromptEl.textContent = `To‘g‘ri namuna: ${ex.sample}`;
+          addMistakeToReview({
+            badge: "1-kun",
+            meta: ex.source.replace(/^Kitobda:\s*/i, ""),
+            wrong: val.slice(0, 42),
+            right: ex.sample,
+            rule: ex.explanation,
+          });
+        }
+      }
+    }
+
+    if (submitAnswerBtn) {
+      submitAnswerBtn.disabled = false;
+      submitAnswerBtn.textContent = "Yuborish";
     }
     composerInput.value = "";
   });
 }
 
-/**
- * 7. Tab 4: Takrorlash — Spaced Repetition Flashcard Session
- */
-const FLASHCARDS = [
-  {
-    id: 1,
-    badge: "3-kun · Unit 4",
-    wrong: "I am knowing",
-    right: "I know the answer now",
-    rule: "State verbs (know, like, understand, want) Continuous (-ing) zamonida ishlatilmaydi.",
-  },
-  {
-    id: 2,
-    badge: "7-kun · Unit 7",
-    wrong: "She has gone to Paris last year",
-    right: "She went to Paris last year",
-    rule: "Aniq tugagan vaqt (last year, yesterday) bilan faqat Past Simple ishlatiladi.",
-  },
-  {
-    id: 3,
-    badge: "1-kun · Unit 14",
-    wrong: "somebody broke into the flat",
-    right: "somebody had broken into the flat",
-    rule: "O‘tgan zamondagi voqeadan oldinroq tugagan ish uchun Past Perfect (had + V3) ishlatiladi.",
-  },
-];
+function addMistakeToReview(card) {
+  if (!card?.wrong || !card?.right) return;
+  const exists = workspace.flashcards.some(
+    (c) => c.wrong.toLowerCase() === card.wrong.toLowerCase()
+  );
+  if (!exists) {
+    workspace.flashcards.unshift(card);
+    saveUserWorkspace();
+    renderReviewTab();
+  }
+}
 
-let fcIndex = 0;
-let isReviewSessionOpen = false;
+/**
+ * 7. Tab 4: Takrorlash Renderer & Flashcard Quiz
+ */
+function renderReviewTab() {
+  if (!workspace.hasBook || !workspace.flashcards.length) {
+    if (emptyReviewCard) emptyReviewCard.hidden = false;
+    if (reviewListCardEl) reviewListCardEl.hidden = true;
+    if (flashcardSessionEl) flashcardSessionEl.hidden = true;
+    if (reviewStartBtn) reviewStartBtn.hidden = true;
+    return;
+  }
+
+  if (emptyReviewCard) emptyReviewCard.hidden = true;
+  if (reviewStartBtn) reviewStartBtn.hidden = false;
+  if (reviewListCardEl) reviewListCardEl.hidden = isReviewSessionOpen;
+  if (flashcardSessionEl) flashcardSessionEl.hidden = !isReviewSessionOpen;
+
+  if (reviewListCardEl) {
+    reviewListCardEl.innerHTML = "";
+    workspace.flashcards.forEach((item, idx) => {
+      if (idx > 0) {
+        const div = document.createElement("div");
+        div.className = "review-divider";
+        div.setAttribute("role", "separator");
+        reviewListCardEl.appendChild(div);
+      }
+      const row = document.createElement("div");
+      row.className = "review-item";
+      row.innerHTML = `
+        <span class="review-item__badge">${escapeHtml(item.badge || "1-kun")}</span>
+        <div class="review-item__content">
+          <span class="review-item__wrong">${escapeHtml(item.wrong)}</span>
+          <span class="review-item__right">${escapeHtml(item.right)}</span>
+        </div>
+        <span class="review-item__meta">${escapeHtml(item.meta || "Mavzu 1")}</span>
+      `;
+      row.addEventListener("click", () => {
+        toggleReviewSession(true);
+        fcIndex = idx;
+        renderFlashcard();
+      });
+      reviewListCardEl.appendChild(row);
+    });
+  }
+
+  if (isReviewSessionOpen) {
+    renderFlashcard();
+  }
+}
 
 function renderFlashcard() {
-  const card = FLASHCARDS[fcIndex];
+  const card = workspace.flashcards[fcIndex % workspace.flashcards.length];
   if (!card) return;
-  if (fcBadgeEl) fcBadgeEl.textContent = card.badge;
-  if (fcCounterEl) fcCounterEl.textContent = `${fcIndex + 1} / ${FLASHCARDS.length}`;
+  if (fcBadgeEl) fcBadgeEl.textContent = `${card.badge || "1-kun"} · ${card.meta || ""}`;
+  if (fcCounterEl) fcCounterEl.textContent = `${(fcIndex % workspace.flashcards.length) + 1} / ${workspace.flashcards.length}`;
   if (fcWrongEl) fcWrongEl.textContent = card.wrong;
   if (fcRightEl) fcRightEl.textContent = card.right;
   if (fcRuleEl) fcRuleEl.textContent = card.rule;
@@ -749,6 +860,7 @@ function renderFlashcard() {
 }
 
 function toggleReviewSession(forceOpen) {
+  if (!workspace.flashcards.length) return;
   isReviewSessionOpen = typeof forceOpen === "boolean" ? forceOpen : !isReviewSessionOpen;
   if (reviewListCardEl) reviewListCardEl.hidden = isReviewSessionOpen;
   if (flashcardSessionEl) flashcardSessionEl.hidden = !isReviewSessionOpen;
@@ -765,14 +877,6 @@ if (reviewStartBtn) {
   reviewStartBtn.addEventListener("click", () => toggleReviewSession());
 }
 
-document.querySelectorAll(".review-item").forEach((item, idx) => {
-  item.addEventListener("click", () => {
-    toggleReviewSession(true);
-    fcIndex = idx % FLASHCARDS.length;
-    renderFlashcard();
-  });
-});
-
 if (fcRevealBtn) {
   fcRevealBtn.addEventListener("click", () => {
     if (fcAnswerEl) fcAnswerEl.hidden = false;
@@ -782,7 +886,7 @@ if (fcRevealBtn) {
 }
 
 function advanceFlashcard() {
-  if (fcIndex + 1 < FLASHCARDS.length) {
+  if (fcIndex + 1 < workspace.flashcards.length) {
     fcIndex += 1;
     renderFlashcard();
   } else {
@@ -794,5 +898,299 @@ function advanceFlashcard() {
 if (fcHardBtn) fcHardBtn.addEventListener("click", advanceFlashcard);
 if (fcGoodBtn) fcGoodBtn.addEventListener("click", advanceFlashcard);
 
-// Initialize Auth State on Load
+/**
+ * 8. PDF Upload, Real Text Extraction (PDF.js) & Gemini AI Plan Generation
+ */
+function triggerPdfFilePicker() {
+  if (!pdfUploadInput) return;
+  pdfUploadInput.value = "";
+  pdfUploadInput.click();
+}
+
+[
+  uploadFromPlanBtn,
+  uploadFromKitobBtn,
+  uploadFromKitobCardBtn,
+  uploadFromRepBtn,
+  uploadFromRevBtn,
+].forEach((btn) => {
+  if (btn) {
+    btn.addEventListener("click", triggerPdfFilePicker);
+  }
+});
+
+function setAiLoadingProgress(visible, statusText = "", pct = 0) {
+  if (!aiLoadingBox) return;
+  aiLoadingBox.hidden = !visible;
+  if (aiLoadingStatus && statusText) aiLoadingStatus.textContent = statusText;
+  if (aiLoadingPct) aiLoadingPct.textContent = `${pct}%`;
+  if (aiLoadingFill) aiLoadingFill.style.width = `${pct}%`;
+  if (uploadFromPlanBtn) {
+    uploadFromPlanBtn.disabled = visible;
+    uploadFromPlanBtn.textContent = visible
+      ? "Tahlil qilinmoqda..."
+      : "PDF darslik tanlash va reja tuzish";
+  }
+}
+
+async function extractTextFromPdfFile(file) {
+  if (!window.pdfjsLib) {
+    return { pageCount: 1, fullText: file.name, pages: [{ page: 1, text: file.name }] };
+  }
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pageCount = pdf.numPages || 1;
+  const maxPagesToRead = Math.min(pageCount, 20);
+  const pages = [];
+  let fullText = "";
+
+  for (let i = 1; i <= maxPagesToRead; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const strings = content.items.map((item) => item.str || "").join(" ");
+    const cleaned = strings.replace(/\s+/g, " ").trim();
+    if (cleaned.length > 20) {
+      pages.push({ page: i, text: cleaned });
+      fullText += `\n[Sahifa ${i}]\n${cleaned}\n`;
+    }
+    const progress = Math.min(55, 15 + Math.round((i / maxPagesToRead) * 40));
+    setAiLoadingProgress(true, `PDF o‘qilmoqda (${i}/${maxPagesToRead} sahifa)...`, progress);
+  }
+
+  return { pageCount, fullText: fullText.trim(), pages };
+}
+
+function splitQuoteIntoTwoLines(sentence) {
+  const clean = String(sentence || "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (clean.length <= 44) {
+    return [clean, "See textbook example and context."];
+  }
+  const trimmed = clean.slice(0, 92);
+  const mid = Math.floor(trimmed.length / 2);
+  const breakIdx = trimmed.indexOf(" ", mid - 8);
+  if (breakIdx > 12 && breakIdx < 60) {
+    return [trimmed.slice(0, breakIdx).trim(), trimmed.slice(breakIdx + 1).trim()];
+  }
+  return [trimmed.slice(0, 44).trim(), trimmed.slice(44).trim()];
+}
+
+/**
+ * Intelligent Real-PDF Fallback Parser:
+ * Uses actual extracted pages & sentences from the uploaded PDF so even if
+ * GEMINI_API_KEY is not yet configured on Vercel, the study plan, book quotes,
+ * exercises, and flashcards are built directly from the user's uploaded PDF!
+ */
+function buildPlanFromExtractedPdf(file, pageCount, pages) {
+  const cleanTitle = file.name.replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").trim() || "Shaxsiy Darslik";
+  const sizeMb = Math.max(0.1, file.size / (1024 * 1024)).toFixed(1);
+  const authorMeta = `${pageCount} sahifa · ${sizeMb} MB · PDF darslik`;
+
+  // Collect meaningful sentences from extracted PDF pages
+  const extractedItems = [];
+  pages.forEach((p) => {
+    const rawSentences = p.text
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length >= 32 && s.length <= 140 && /[a-zA-Zа-яА-Я]/.test(s));
+    rawSentences.slice(0, 3).forEach((s) => {
+      extractedItems.push({ page: p.page, sentence: s });
+    });
+  });
+
+  while (extractedItems.length < 4) {
+    const idx = extractedItems.length + 1;
+    extractedItems.push({
+      page: idx,
+      sentence: `${cleanTitle} — Section ${idx}: key concepts, rules, and practical examples from page ${idx}.`,
+    });
+  }
+
+  const picked = extractedItems.slice(0, 4);
+
+  const units = picked.map((item, idx) => {
+    const [line1, line2] = splitQuoteIntoTwoLines(item.sentence);
+    const shortHeading = item.sentence
+      .split(/\s+/)
+      .slice(0, 5)
+      .join(" ")
+      .replace(/[.,:;!?]+$/, "");
+    return {
+      unitNum: idx + 1,
+      page: `s. ${item.page}`,
+      badge: `${idx + 1}-bo‘lim · s. ${item.page}`,
+      heading: shortHeading || `${cleanTitle} — ${idx + 1}-mavzu`,
+      desc: `"${cleanTitle}" darsligining ${item.page}-sahifasidan ajratib olingan asosiy nazariy qoida va amaliy kontekst. Quyidagi sariq markerli jumlani diqqat bilan o‘qing.`,
+      source: `Kitobda: ${cleanTitle} · s. ${item.page}`,
+      line1,
+      line2,
+      pct: Math.round(((idx + 1) / picked.length) * 100),
+    };
+  });
+
+  const tasks = [
+    {
+      id: Date.now() + 1,
+      title: `${cleanTitle}: 1-bo‘lim nazariyasini o‘qish`,
+      sub: `15 daq · ${units[0].page}`,
+      done: false,
+    },
+    {
+      id: Date.now() + 2,
+      title: `Kitobdagi asosiy jumlalarni tahlil qilish (${units[0].page})`,
+      sub: `10 daq · Kitob bo‘limi`,
+      done: false,
+    },
+    {
+      id: Date.now() + 3,
+      title: `AI Repetitor bilan 4 ta amaliy mashqni ishlash`,
+      sub: `12 daq · Repetitor bo‘limi`,
+      done: false,
+    },
+    {
+      id: Date.now() + 4,
+      title: `${units[1]?.page || "s. 2"} dagi yangi iboralarni takrorlash`,
+      sub: `8 daq · Takrorlash bo‘limi`,
+      done: false,
+    },
+    {
+      id: Date.now() + 5,
+      title: `Bugungi mavzu bo‘yicha 3 ta mustaqil jumla yozish`,
+      sub: `10 daq · Yozma amaliyot`,
+      done: false,
+    },
+  ];
+
+  const exercises = picked.map((item, idx) => {
+    const [line1, line2] = splitQuoteIntoTwoLines(item.sentence);
+    const words = item.sentence.split(/\s+/).filter((w) => w.length > 3);
+    const targetWord = (words[Math.min(2, words.length - 1)] || "example").replace(/[^a-zA-Z0-9']/g, "");
+    const contextWord = (words[Math.max(0, Math.min(1, words.length - 2))] || "context").replace(/[^a-zA-Z0-9']/g, "");
+
+    return {
+      label: `${idx + 1}-mashq · s. ${item.page}`,
+      studentSentence: item.sentence,
+      context: contextWord || "Kalit so‘z:",
+      wrong: `${targetWord} (noto‘g‘ri shakl)`,
+      right: targetWord || "to‘g‘ri shakl",
+      explanation: `Ushbu jumla "${cleanTitle}" darsligining ${item.page}-sahifasidan olindi. Kontekstda "${targetWord}" so‘zining to‘g‘ri qo‘llanishiga e’tibor bering.`,
+      source: `Kitobda: ${cleanTitle} · s. ${item.page}`,
+      line1,
+      line2,
+      prompt: `Kitobning ${item.page}-sahifasidagi ushbu asosiy jumlani yoki uning mazmunini ingliz tilida yozing: "${line1}..."`,
+      sample: item.sentence,
+      hint: `Maslahat · "${targetWord}" kalit so‘zini qatnashtirib yozing`,
+      keywords: [targetWord.toLowerCase(), line1.split(" ")[0]?.toLowerCase() || ""].filter(Boolean),
+    };
+  });
+
+  const flashcards = picked.slice(0, 3).map((item, idx) => {
+    const [line1, line2] = splitQuoteIntoTwoLines(item.sentence);
+    return {
+      badge: `${idx + 1}-kun`,
+      meta: `s. ${item.page}`,
+      wrong: `${line1} ...`,
+      right: `${line1} ${line2}`,
+      rule: `"${cleanTitle}" (${item.page}-sahifa) dagi muhim qoida va jumla tuzilishi.`,
+    };
+  });
+
+  return {
+    hasBook: true,
+    bookTitle: cleanTitle,
+    authorMeta,
+    totalUnits: Math.max(pageCount, units.length),
+    planMeta: `1-bo‘lim · ${units[0].page}`,
+    tasks,
+    units,
+    exercises,
+    flashcards,
+  };
+}
+
+if (pdfUploadInput) {
+  pdfUploadInput.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setActiveDockTab("bugun");
+    setAiLoadingProgress(true, "PDF kitob o‘qilmoqda...", 15);
+
+    try {
+      const { pageCount, fullText, pages } = await extractTextFromPdfFile(file);
+      setAiLoadingProgress(true, "Gemini AI o‘quv reja va mashqlar tuzmoqda...", 68);
+
+      let aiPlan = null;
+      try {
+        const apiKey = localStorage.getItem(STORAGE_KEYS.API_KEY) || "";
+        const res = await fetch("/api/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "analyze_pdf",
+            fileName: file.name,
+            pageCount,
+            pdfText: fullText,
+            apiKey,
+          }),
+        });
+
+        if (res.ok) {
+          const payload = await res.json();
+          if (payload?.ok && payload.data?.tasks?.length) {
+            aiPlan = payload.data;
+          }
+        }
+      } catch {
+        // Fallback to local PDF parser below
+      }
+
+      setAiLoadingProgress(true, "O‘quv maydoni tayyorlanmoqda...", 95);
+
+      if (aiPlan) {
+        const sizeMb = Math.max(0.1, file.size / (1024 * 1024)).toFixed(1);
+        workspace = {
+          hasBook: true,
+          bookTitle: aiPlan.bookTitle || file.name.replace(/\.pdf$/i, ""),
+          authorMeta: aiPlan.authorMeta || `${pageCount} sahifa · ${sizeMb} MB · AI tahlil`,
+          totalUnits: aiPlan.totalUnits || pageCount,
+          planMeta: aiPlan.planMeta || "1-bo‘lim · s. 1",
+          tasks: aiPlan.tasks.map((t, i) => ({
+            id: Date.now() + i,
+            title: t.title,
+            sub: t.sub,
+            done: false,
+          })),
+          units: aiPlan.units || [],
+          exercises: aiPlan.exercises || [],
+          flashcards: aiPlan.flashcards || [],
+        };
+      } else {
+        workspace = buildPlanFromExtractedPdf(file, pageCount, pages);
+      }
+
+      currentUnitIdx = 0;
+      currentRepIdx = 0;
+      fcIndex = 0;
+      isReviewSessionOpen = false;
+      saveUserWorkspace();
+      setAiLoadingProgress(false);
+      renderAllTabs();
+    } catch (err) {
+      console.error("PDF parse error:", err);
+      setAiLoadingProgress(false);
+    }
+  });
+}
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// Initialize Session on Startup
 loadUserSession();
