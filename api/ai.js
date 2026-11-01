@@ -132,17 +132,32 @@ const CHECK_ANSWER_SCHEMA = {
   ],
 };
 
-async function runStructuredGeneration(apiKey, prompt, schema) {
-  const ai = new GoogleGenAI({ apiKey });
-
+async function callInteractionsModel(ai, model, prompt, schema) {
   const interaction = await ai.interactions.create({
-    model: "gemini-3.8-flash",
+    model,
     input: prompt,
     response_format: schema,
   });
-
   const textOutput = interaction.outputs?.find((o) => o.type === "text")?.text;
-  return JSON.parse(textOutput || "{}");
+  if (!textOutput) {
+    throw new Error("Empty model response");
+  }
+  return JSON.parse(textOutput);
+}
+
+async function runStructuredGeneration(apiKey, prompt, schema) {
+  const ai = new GoogleGenAI({ apiKey });
+
+  try {
+    return await Promise.race([
+      callInteractionsModel(ai, "gemini-3.8-flash", prompt, schema),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("PRIMARY_MODEL_TIMEOUT")), 5500)
+      ),
+    ]);
+  } catch {
+    return await callInteractionsModel(ai, "gemini-3.5-flash-lite", prompt, schema);
+  }
 }
 
 export default async function handler(req, res) {
