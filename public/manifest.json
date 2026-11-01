@@ -1,0 +1,17 @@
+{
+  "name": "Discipline Learn",
+  "short_name": "Discipline",
+  "description": "Sun’iy intellektga asoslangan ingliz tili repetitori va darslik tizimi",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e7c86",
+  "theme_color": "#0e7c86",
+  "icons": [
+    {
+      "src": "/public/assets/header-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
