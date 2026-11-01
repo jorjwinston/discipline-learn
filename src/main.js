@@ -7,7 +7,7 @@
 
 const STORAGE_KEYS = {
   USER: "dl_auth_user_v1",
-  GOOGLE_CLIENT_ID: "dl_google_client_id_v1",
+  ACCOUNTS: "dl_accounts_v1",
   TASKS: "dl_daily_tasks_v1",
   BOOK: "dl_active_book_v1",
   UNIT_INDEX: "dl_unit_idx_v1",
@@ -15,24 +15,18 @@ const STORAGE_KEYS = {
   REVIEWS: "dl_reviews_v1",
 };
 
-// Official Google OAuth 2.0 Web Client ID for https://discipline-learn.vercel.app
-const DEFAULT_GOOGLE_CLIENT_ID =
-  "945461625815-idmds28ep071tnkp5rcuuhbedsi3o41o.apps.googleusercontent.com";
-
 const body = document.body;
 const metaThemeColor = document.getElementById("meta-theme-color");
 const screenApp = document.getElementById("screen-app");
 
 // Auth & Profile DOM
-const googleLoginBtn = document.getElementById("btn-google-login");
-const googleBtnLabel = document.getElementById("google-btn-label");
-const googleAuthSheet = document.getElementById("google-auth-sheet");
-const closeAuthSheetBtn = document.getElementById("btn-close-auth-sheet");
-const googleAuthForm = document.getElementById("google-auth-form");
-const authClientIdInput = document.getElementById("auth-client-id-input");
+const loginForm = document.getElementById("login-form");
+const loginUsernameInput = document.getElementById("login-username");
+const loginPasswordInput = document.getElementById("login-password");
+const togglePassBtn = document.getElementById("btn-toggle-pass");
+const loginErrorEl = document.getElementById("login-error");
 
 const avatarBtn = document.getElementById("btn-avatar");
-const avatarInitialsEl = document.getElementById("avatar-initials");
 const profileSheet = document.getElementById("profile-sheet");
 const closeProfileSheetBtn = document.getElementById("btn-close-profile-sheet");
 const profileSheetAvatar = document.getElementById("profile-sheet-avatar");
@@ -146,27 +140,12 @@ if (progressDateEl) {
 }
 
 /**
- * 2. Real Google OAuth 2.0 Verification (Google Identity Services)
+ * 2. Username & Password Authentication
  */
-function getInitials(fullName) {
-  const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "U";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-}
-
-function getGoogleClientId() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const fromQuery = urlParams.get("client_id");
-  if (fromQuery && fromQuery.includes(".apps.googleusercontent.com")) {
-    localStorage.setItem(STORAGE_KEYS.GOOGLE_CLIENT_ID, fromQuery.trim());
-    return fromQuery.trim();
-  }
-  return (
-    localStorage.getItem(STORAGE_KEYS.GOOGLE_CLIENT_ID) ||
-    DEFAULT_GOOGLE_CLIENT_ID ||
-    ""
-  ).trim();
+function getInitials(username) {
+  const clean = String(username || "").replace(/[^a-zA-Z0-9а-яА-ЯўқғҳЎҚҒҲ]/g, "").trim();
+  if (!clean) return "U";
+  return clean.slice(0, 2).toUpperCase();
 }
 
 function setViewMode(mode) {
@@ -177,24 +156,17 @@ function setViewMode(mode) {
 }
 
 function applyUserToUI(user) {
-  const initials = user.initials || getInitials(user.name);
+  const initials = user.initials || getInitials(user.username || user.name);
+  const displayName = user.username || user.name || "Foydalanuvchi";
   if (avatarBtn) {
-    avatarBtn.setAttribute("aria-label", `${user.name} profili`);
-    if (user.picture) {
-      avatarBtn.innerHTML = `<img src="${user.picture}" alt="${user.name}" referrerpolicy="no-referrer" />`;
-    } else {
-      avatarBtn.innerHTML = `<span id="avatar-initials">${initials}</span>`;
-    }
+    avatarBtn.setAttribute("aria-label", `${displayName} profili`);
+    avatarBtn.innerHTML = `<span id="avatar-initials">${initials}</span>`;
   }
   if (profileSheetAvatar) {
-    if (user.picture) {
-      profileSheetAvatar.innerHTML = `<img src="${user.picture}" alt="${user.name}" referrerpolicy="no-referrer" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
-    } else {
-      profileSheetAvatar.textContent = initials;
-    }
+    profileSheetAvatar.textContent = initials;
   }
-  if (profileSheetName) profileSheetName.textContent = user.name;
-  if (profileSheetEmail) profileSheetEmail.textContent = user.email;
+  if (profileSheetName) profileSheetName.textContent = displayName;
+  if (profileSheetEmail) profileSheetEmail.textContent = `@${displayName.toLowerCase()}`;
   const consistency = user.consistency || 94;
   const activeDays = user.activeDays || 1;
   if (progressValueEl) progressValueEl.textContent = `${consistency}%`;
@@ -219,77 +191,91 @@ function loadUserSession() {
   }
 }
 
-function startRealGoogleSignIn(clientId) {
-  if (!window.google?.accounts?.oauth2) {
-    alert("Google Identity Services yuklanmoqda, 1 soniyadan so‘ng qayta bosing.");
-    return;
+if (togglePassBtn && loginPasswordInput) {
+  togglePassBtn.addEventListener("click", () => {
+    const isPass = loginPasswordInput.type === "password";
+    loginPasswordInput.type = isPass ? "text" : "password";
+    togglePassBtn.textContent = isPass ? "Yashirish" : "Ko‘rish";
+  });
+}
+
+function showLoginError(msg) {
+  if (!loginErrorEl) return;
+  if (!msg) {
+    loginErrorEl.hidden = true;
+    loginErrorEl.textContent = "";
+  } else {
+    loginErrorEl.textContent = msg;
+    loginErrorEl.hidden = false;
   }
-
-  if (googleBtnLabel) googleBtnLabel.textContent = "Google bilan bog‘lanmoqda...";
-
-  const tokenClient = window.google.accounts.oauth2.initTokenClient({
-    client_id: clientId,
-    scope: "openid email profile",
-    callback: async (tokenResponse) => {
-      if (tokenResponse.error) {
-        if (googleBtnLabel) googleBtnLabel.textContent = "Google hisobi orqali davom etish";
-        return;
-      }
-      try {
-        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        });
-        if (!res.ok) throw new Error("Google userinfo xatosi");
-        const profile = await res.json();
-        const user = {
-          sub: profile.sub,
-          name: profile.name || profile.given_name || "Google Foydalanuvchi",
-          email: profile.email || "",
-          picture: profile.picture || "",
-          initials: getInitials(profile.name || profile.email),
-          consistency: 100,
-          activeDays: 1,
-          lastLogin: new Date().toISOString().slice(0, 10),
-        };
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-        applyUserToUI(user);
-        if (googleBtnLabel) googleBtnLabel.textContent = "Google hisobi orqali davom etish";
-        setViewMode("app");
-      } catch {
-        if (googleBtnLabel) googleBtnLabel.textContent = "Google hisobi orqali davom etish";
-      }
-    },
-  });
-
-  tokenClient.requestAccessToken({ prompt: "select_account" });
 }
 
-if (googleLoginBtn) {
-  googleLoginBtn.addEventListener("click", () => {
-    const clientId = getGoogleClientId();
-    if (clientId) {
-      startRealGoogleSignIn(clientId);
-    } else if (googleAuthSheet) {
-      googleAuthSheet.hidden = false;
-      setTimeout(() => authClientIdInput?.focus(), 60);
-    }
-  });
-}
-
-if (closeAuthSheetBtn && googleAuthSheet) {
-  closeAuthSheetBtn.addEventListener("click", () => {
-    googleAuthSheet.hidden = true;
-  });
-}
-
-if (googleAuthForm) {
-  googleAuthForm.addEventListener("submit", (e) => {
+if (loginForm) {
+  loginForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const clientId = authClientIdInput.value.trim();
-    if (!clientId) return;
-    localStorage.setItem(STORAGE_KEYS.GOOGLE_CLIENT_ID, clientId);
-    googleAuthSheet.hidden = true;
-    startRealGoogleSignIn(clientId);
+    const username = (loginUsernameInput?.value || "").trim();
+    const password = loginPasswordInput?.value || "";
+
+    if (username.length < 2) {
+      showLoginError("Foydalanuvchi nomi kamida 2 ta belgidan iborat bo‘lsin.");
+      loginUsernameInput?.focus();
+      return;
+    }
+
+    if (password.length < 4) {
+      showLoginError("Parol kamida 4 ta belgidan iborat bo‘lsin.");
+      loginPasswordInput?.focus();
+      return;
+    }
+
+    let accounts = {};
+    try {
+      accounts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACCOUNTS) || "{}");
+    } catch {
+      accounts = {};
+    }
+
+    const key = username.toLowerCase();
+    const existing = accounts[key];
+
+    if (existing && existing.password !== password) {
+      showLoginError("Ushbu foydalanuvchi nomi uchun parol noto‘g‘ri.");
+      loginPasswordInput?.focus();
+      return;
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const activeDays = existing
+      ? existing.lastLogin === today
+        ? existing.activeDays || 1
+        : (existing.activeDays || 1) + 1
+      : 1;
+
+    const userRecord = {
+      username: existing ? existing.username : username,
+      password,
+      initials: getInitials(username),
+      consistency: existing?.consistency || 94,
+      activeDays,
+      lastLogin: today,
+    };
+
+    accounts[key] = userRecord;
+    localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
+
+    const sessionUser = {
+      username: userRecord.username,
+      initials: userRecord.initials,
+      consistency: userRecord.consistency,
+      activeDays: userRecord.activeDays,
+      lastLogin: today,
+    };
+
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(sessionUser));
+    showLoginError("");
+    if (loginPasswordInput) loginPasswordInput.value = "";
+    applyUserToUI(sessionUser);
+    setViewMode("app");
   });
 }
 
@@ -307,11 +293,7 @@ if (closeProfileSheetBtn && profileSheet) {
 
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
-    const raw = localStorage.getItem(STORAGE_KEYS.USER);
     localStorage.removeItem(STORAGE_KEYS.USER);
-    if (raw && window.google?.accounts?.id) {
-      window.google.accounts.id.disableAutoSelect();
-    }
     if (profileSheet) profileSheet.hidden = true;
     setViewMode("login");
   });
