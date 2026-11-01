@@ -15,8 +15,9 @@ const STORAGE_KEYS = {
   REVIEWS: "dl_reviews_v1",
 };
 
-// Default Google OAuth Web Client ID (can also be overridden via ?client_id= or modal)
-const DEFAULT_GOOGLE_CLIENT_ID = "";
+// Official Google OAuth 2.0 Web Client ID for https://discipline-learn.vercel.app
+const DEFAULT_GOOGLE_CLIENT_ID =
+  "945461625815-idmds28ep071tnkp5rcuuhbedsi3o41o.apps.googleusercontent.com";
 
 const body = document.body;
 const metaThemeColor = document.getElementById("meta-theme-color");
