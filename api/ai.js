@@ -132,6 +132,40 @@ const CHECK_ANSWER_SCHEMA = {
   ],
 };
 
+async function runStructuredGeneration(apiKey, prompt, schema) {
+  const isVertexExpressKey = apiKey.startsWith("AQ.");
+  const ai = isVertexExpressKey
+    ? new GoogleGenAI({ vertexai: true, apiKey })
+    : new GoogleGenAI({ apiKey });
+
+  // 1. Primary path: Interactions API with gemini-3.8-flash
+  if (!isVertexExpressKey && ai.interactions?.create) {
+    try {
+      const interaction = await ai.interactions.create({
+        model: "gemini-3.8-flash",
+        input: prompt,
+        response_format: schema,
+      });
+      const textOutput = interaction.outputs?.find((o) => o.type === "text")?.text;
+      if (textOutput) return JSON.parse(textOutput);
+    } catch {
+      // Fall through to models.generateContent for Vertex Express / regional compatibility
+    }
+  }
+
+  // 2. Compatible path for Vertex Express Mode (AQ.*) keys & fallback
+  const response = await ai.models.generateContent({
+    model: "gemini-flash-latest",
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: schema,
+    },
+  });
+
+  return JSON.parse(response.text || "{}");
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Faqat POST so‘rovlar qabul qilinadi." });
@@ -153,7 +187,6 @@ export default async function handler(req, res) {
     });
   }
 
-  const ai = new GoogleGenAI({ apiKey });
   const action = body.action || "analyze_pdf";
 
   try {
@@ -179,15 +212,8 @@ Vazifangiz — aynan ushbu PDF kitob mazmunidan kelib chiqib, o‘zbek tilida to
 3. "exercises": 4 ta mashq. Har birida o‘quvchi adashishi mumkin bo‘lgan gap ("studentSentence"), xato qism ("wrong"), to‘g‘ri qism ("right"), o‘zbekcha tushuntirish ("explanation"), kitobdan iqtibos ("line1", "line2"), va o‘quvchi o‘zi tarjima qilishi/yozishi uchun o‘zbekcha topshiriq ("prompt") hamda to‘g‘ri namuna ("sample").
 4. "flashcards": 3 ta takrorlash kartochkasi ("wrong", "right", "rule", "badge": "1-kun", "meta": "Unit 1 · s. 2").`;
 
-      const interaction = await ai.interactions.create({
-        model: "gemini-3.8-flash",
-        input: prompt,
-        response_format: STUDY_PLAN_SCHEMA,
-      });
-
-      const textOutput = interaction.outputs?.find((o) => o.type === "text")?.text;
-      const parsed = JSON.parse(textOutput || "{}");
-      return res.status(200).json({ ok: true, source: "gemini-3.8-flash", data: parsed });
+      const parsed = await runStructuredGeneration(apiKey, prompt, STUDY_PLAN_SCHEMA);
+      return res.status(200).json({ ok: true, source: "gemini-ai", data: parsed });
     }
 
     if (action === "check_answer") {
@@ -204,15 +230,8 @@ O‘quvchi javobini tekshiring:
 - Agar ma’nosi va grammatik qoidasi to‘g‘ri bo‘lsa, "isCorrect": true, "feedbackLabel": "Barakalla · Qoida to‘g‘ri qo‘llandi!", "feedbackText": o‘quvchi javobining tasdig‘i.
 - Agar xato bo‘lsa, "isCorrect": false, "feedbackLabel": qisqa maslahat (o‘zbek tilida), "feedbackText": to‘g‘ri variant va tushuntirish, hamda "wrongFragment" (o‘quvchi xatosi), "rightFragment" (to‘g‘ri shakl) va "ruleSummary" (qisqa qoida) maydonlarini to‘ldiring.`;
 
-      const interaction = await ai.interactions.create({
-        model: "gemini-3.8-flash",
-        input: prompt,
-        response_format: CHECK_ANSWER_SCHEMA,
-      });
-
-      const textOutput = interaction.outputs?.find((o) => o.type === "text")?.text;
-      const parsed = JSON.parse(textOutput || "{}");
-      return res.status(200).json({ ok: true, source: "gemini-3.8-flash", data: parsed });
+      const parsed = await runStructuredGeneration(apiKey, prompt, CHECK_ANSWER_SCHEMA);
+      return res.status(200).json({ ok: true, source: "gemini-ai", data: parsed });
     }
 
     return res.status(400).json({ error: "Noto‘g‘ri action parametri." });
