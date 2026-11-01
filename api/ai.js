@@ -133,37 +133,19 @@ const CHECK_ANSWER_SCHEMA = {
 };
 
 async function runStructuredGeneration(apiKey, prompt, schema) {
-  const isVertexExpressKey = apiKey.startsWith("AQ.");
-  const ai = isVertexExpressKey
-    ? new GoogleGenAI({ vertexai: true, apiKey })
-    : new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey });
 
-  // 1. Primary path: Interactions API with gemini-3.8-flash
-  if (!isVertexExpressKey && ai.interactions?.create) {
-    try {
-      const interaction = await ai.interactions.create({
-        model: "gemini-3.8-flash",
-        input: prompt,
-        response_format: schema,
-      });
-      const textOutput = interaction.outputs?.find((o) => o.type === "text")?.text;
-      if (textOutput) return JSON.parse(textOutput);
-    } catch {
-      // Fall through to models.generateContent for Vertex Express / regional compatibility
-    }
-  }
-
-  // 2. Compatible path for Vertex Express Mode (AQ.*) keys & fallback
-  const response = await ai.models.generateContent({
-    model: "gemini-flash-latest",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: schema,
+  const interaction = await ai.interactions.create({
+    model: "gemini-3.8-flash",
+    input: prompt,
+    response_format: schema,
+    generation_config: {
+      thinking_level: "minimal",
     },
   });
 
-  return JSON.parse(response.text || "{}");
+  const textOutput = interaction.outputs?.find((o) => o.type === "text")?.text;
+  return JSON.parse(textOutput || "{}");
 }
 
 export default async function handler(req, res) {
@@ -193,7 +175,7 @@ export default async function handler(req, res) {
     if (action === "analyze_pdf") {
       const fileName = String(body.fileName || "Darslik.pdf");
       const pageCount = Number(body.pageCount || 1);
-      const rawText = String(body.pdfText || "").slice(0, 18000);
+      const rawText = String(body.pdfText || "").slice(0, 12000);
 
       const prompt = `Siz "Discipline Learn" ilovasining sun'iy intellekt o‘quv reja va repetitor tizimisiz.
 Foydalanuvchi "${fileName}" (${pageCount} sahifa) nomli PDF darslik yukladi.
@@ -204,16 +186,16 @@ ${rawText}
 
 Vazifangiz — aynan ushbu PDF kitob mazmunidan kelib chiqib, o‘zbek tilida to‘liq o‘quv rejasi, mavzular konspekti, repetitor mashqlari va takrorlash kartochkalarini tuzib berish:
 1. "tasks": 5 ta aniq kunlik vazifa (masalan, 1-mavzu qoidasini o‘qish, mashq bajarish, xatolarni repetitor bilan tahlil qilish, mustaqil gap yozish).
-2. "units": 3 yoki 4 ta asosiy mavzu/bo‘lim. Har birida:
+2. "units": 3 ta asosiy mavzu/bo‘lim. Har birida:
    - "heading": Mavzu nomi
-   - "desc": O‘zbek tilida tushunarli qoida/izoh (2-3 gap)
+   - "desc": O‘zbek tilida tushunarli qoida/izoh (2 gap)
    - "line1" va "line2": Kitob ichidagi haqiqiy misol yoki muhim jumlaning 1- va 2-qatori (har biri ~35-48 belgi, sariq markerda ko‘rsatish uchun)
    - "source": "Kitobda: Unit X · s. Y" ko‘rinishida.
-3. "exercises": 4 ta mashq. Har birida o‘quvchi adashishi mumkin bo‘lgan gap ("studentSentence"), xato qism ("wrong"), to‘g‘ri qism ("right"), o‘zbekcha tushuntirish ("explanation"), kitobdan iqtibos ("line1", "line2"), va o‘quvchi o‘zi tarjima qilishi/yozishi uchun o‘zbekcha topshiriq ("prompt") hamda to‘g‘ri namuna ("sample").
+3. "exercises": 3 ta mashq. Har birida o‘quvchi adashishi mumkin bo‘lgan gap ("studentSentence"), xato qism ("wrong"), to‘g‘ri qism ("right"), o‘zbekcha tushuntirish ("explanation"), kitobdan iqtibos ("line1", "line2"), va o‘quvchi o‘zi tarjima qilishi/yozishi uchun o‘zbekcha topshiriq ("prompt") hamda to‘g‘ri namuna ("sample").
 4. "flashcards": 3 ta takrorlash kartochkasi ("wrong", "right", "rule", "badge": "1-kun", "meta": "Unit 1 · s. 2").`;
 
       const parsed = await runStructuredGeneration(apiKey, prompt, STUDY_PLAN_SCHEMA);
-      return res.status(200).json({ ok: true, source: "gemini-ai", data: parsed });
+      return res.status(200).json({ ok: true, source: "gemini-3.8-flash", data: parsed });
     }
 
     if (action === "check_answer") {
@@ -231,7 +213,7 @@ O‘quvchi javobini tekshiring:
 - Agar xato bo‘lsa, "isCorrect": false, "feedbackLabel": qisqa maslahat (o‘zbek tilida), "feedbackText": to‘g‘ri variant va tushuntirish, hamda "wrongFragment" (o‘quvchi xatosi), "rightFragment" (to‘g‘ri shakl) va "ruleSummary" (qisqa qoida) maydonlarini to‘ldiring.`;
 
       const parsed = await runStructuredGeneration(apiKey, prompt, CHECK_ANSWER_SCHEMA);
-      return res.status(200).json({ ok: true, source: "gemini-ai", data: parsed });
+      return res.status(200).json({ ok: true, source: "gemini-3.8-flash", data: parsed });
     }
 
     return res.status(400).json({ error: "Noto‘g‘ri action parametri." });
